@@ -32,6 +32,8 @@ page_access_token = _get_page_access_token(response, page_id)
 
 graph = facebook.GraphAPI(access_token=page_access_token)
 
+# FIXME: This is hardcoded
+album_id= 114196000226199
 
 def post_text(message: str):
     response = graph.put_object(parent_object=page_id,
@@ -44,7 +46,9 @@ def post_text(message: str):
 
 
 def post_picture(message: str, filepath: str):
-    response = graph.put_photo(image=open(filepath, 'rb'), message=message)
+    response = graph.put_photo(image=open(filepath, 'rb'),
+                               message=message,
+                               album_path=f"{album_id}/photos")
     post_id = response['id']
     if verbose:
         print("Success:", post_id)
