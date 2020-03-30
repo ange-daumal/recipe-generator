@@ -1,16 +1,13 @@
 import json
-import sys
-from pprint import pprint
+import random
+import shutil
+from typing import Tuple
 
 import requests
 
-import random
-from typing import Tuple
-import shutil
 from utils import io_ops
 
 verbose = True
-tmp_filepath = "data/tmp.jpg"
 
 access_key = io_ops.get_env_var("unsplash_access_key")
 secret_key = io_ops.get_env_var("unsplash_secret_key")
@@ -21,7 +18,7 @@ headers = {
 }
 
 
-def get_picture_by_keywords(keywords: str) -> Tuple[str, str]:
+def get_picture_by_keywords(keywords: str, image_filepath: str) -> Tuple[str, str]:
     response = requests.get(f"{api}/search/photos?query={keywords}", headers=headers)
     response = json.loads(response.text)
 
@@ -41,10 +38,10 @@ def get_picture_by_keywords(keywords: str) -> Tuple[str, str]:
     # Download picture
     response = requests.get(picture_url, stream=True)
     response.raw.decode_content = True
-    with open(tmp_filepath, 'wb') as f:
+    with open(image_filepath, 'wb') as f:
         shutil.copyfileobj(response.raw, f)
 
-    return tmp_filepath, text
+    return image_filepath, text
 
 
 if __name__ == '__main__':

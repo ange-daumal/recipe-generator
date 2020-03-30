@@ -1,7 +1,7 @@
 import json
 import sys
 
-import facebook  # noqa
+import facebook
 import requests
 
 from utils import io_ops
