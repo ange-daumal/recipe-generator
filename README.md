@@ -1,5 +1,5 @@
 # recipe-generator
-An automatic recipe idea generator for a Facebook Page: facebook.com/Recipe-Ideas-Generator-113704106942055 
+An automatic recipe idea generator for the Facebook Page [Recipe Ideas Generator](facebook.com/Recipe-Ideas-Generator-113704106942055)
 
 # Usage
 ## Required access 
