@@ -10,7 +10,7 @@ import shutil
 from utils import io_ops
 
 verbose = True
-tmp_filepath = "data/tmp"
+tmp_filepath = "data/tmp.jpg"
 
 access_key = io_ops.get_env_var("unsplash_access_key")
 secret_key = io_ops.get_env_var("unsplash_secret_key")

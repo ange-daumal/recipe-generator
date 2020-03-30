@@ -32,10 +32,11 @@ page_access_token = _get_page_access_token(response, page_id)
 
 graph = facebook.GraphAPI(access_token=page_access_token)
 
-# FIXME: This is hardcoded
-album_id= 114196000226199
+# FIXME: Album ID is hardcoded
+album_id = 114196000226199
 
-def post_text(message: str):
+
+def post_text(message: str) -> str:
     response = graph.put_object(parent_object=page_id,
                                 connection_name="feed",
                                 message=message)
@@ -45,7 +46,8 @@ def post_text(message: str):
     return post_id
 
 
-def post_picture(message: str, filepath: str):
+def post_picture(message: str, filepath: str) -> str:
+    # publish in an album
     response = graph.put_photo(image=open(filepath, 'rb'),
                                message=message,
                                album_path=f"{album_id}/photos")
@@ -53,3 +55,12 @@ def post_picture(message: str, filepath: str):
     if verbose:
         print("Success:", post_id)
     return post_id
+
+
+def post_comment(post_id: str, message: str) -> str:
+    response = graph.put_comment(post_id, message=message)
+    comment_id = response['id']
+    if verbose:
+        print("Success:", comment_id)
+    return comment_id
+
