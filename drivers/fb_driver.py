@@ -36,31 +36,32 @@ graph = facebook.GraphAPI(access_token=page_access_token)
 album_id = 114196000226199
 
 
-def post_text(message: str) -> str:
-    response = graph.put_object(parent_object=page_id,
-                                connection_name="feed",
-                                message=message)
-    post_id = response['id']
+def check_error(response: dict) -> str:
+    if "error" in response.keys():
+        print(response['error'])
+        sys.exit(1)
     if verbose:
-        print("Success:", post_id)
-    return post_id
+        print("Success:", response)
+    return response
+
+
+def post_text(message: str) -> str:
+    query = f"https://graph.facebook.com/{page_id}/feed" \
+        f"?message={message}" \
+        f"&fields=created_time,from,id,message,permalink_url" \
+        f"&published=false" \
+        f"&access_token={page_access_token}"
+    response = json.loads(requests.post(query).text)
+    return check_error(response)
 
 
 def post_picture(message: str, filepath: str) -> str:
-    # publish in an album
     response = graph.put_photo(image=open(filepath, 'rb'),
-                               message=message,
-                               album_path=f"{album_id}/photos")
-    post_id = response['id']
-    if verbose:
-        print("Success:", post_id)
-    return post_id
+                               message=message)
+    # , album_path=f"{album_id}/photos")
+    return check_error(response)
 
 
-def post_comment(post_id: str, message: str) -> str:
-    response = graph.put_comment(post_id, message=message)
-    comment_id = response['id']
-    if verbose:
-        print("Success:", comment_id)
-    return comment_id
-
+if __name__ == '__main__':
+    message = "Hello, this is a test."
+    post_text(message)

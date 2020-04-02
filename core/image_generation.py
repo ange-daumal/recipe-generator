@@ -10,9 +10,9 @@ def get_pos(width: int, height: int, k: int):
         [[int(width / 2), int(2 * height / 30)],
          [int(width / 2), int(2 * height / 3)]],
 
-        [[int(width / 2), int(1 * height / 6)],
-         [int(width / 4), int(3 * height / 4)],
-         [int(3 * width / 4), int(3 * height / 4)]],
+        [[int(width / 2), int(1 * height / 25)],
+         [int(width / 5), int(6 * height / 9)],
+         [int(4 * width / 5), int(6 * height / 9)]],
 
         [[int(width / 5), int(2 * height / 30)],
          [int(4 * width / 5), int(2 * height / 30)],
@@ -82,7 +82,7 @@ def label(raw_picture_file: str, samples: List[str], new_picture_file) -> None:
 
 
 if __name__ == '__main__':
-    samples = ['Bone-in Pork Chops', 'Bread', 'Tart Crust']
+    samples = ["Cognac", 'Mutton', "Refrigerated Chocolate Chip Cookie Dough"]
     raw_picture_file = "data/tmp_raw.jpg"
     new_picture_file = "data/tmp_new.jpg"
     label(raw_picture_file, samples, new_picture_file)

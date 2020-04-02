@@ -3,6 +3,7 @@ import random
 import shutil
 from typing import Tuple
 
+import sys
 import requests
 
 from utils import io_ops
@@ -17,23 +18,45 @@ headers = {
     "Authorization": f"Client-ID {access_key}"
 }
 
+def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 20,
+                            orientation: str = "squarish", page: int = 1) -> Tuple[str, str]:
+    print(keywords)
+    response = requests.get(f"{api}/search/photos?query={keywords}"
+                            f"&per_page={per_page}"
+                            f"&page={page}"
+                            f"&orientation={orientation}"
+                            "&order_by=latest",
+                            headers=headers)
 
-def get_picture_by_keywords(keywords: str, image_filepath: str) -> Tuple[str, str]:
-    response = requests.get(f"{api}/search/photos?query={keywords}", headers=headers)
+    if response.status_code != 200:
+        raise Exception(f"Unsplash: {response.text}")
+
     response = json.loads(response.text)
 
     # Get Picture data
-    picture_data = random.choice(response["results"][:5])
+    containing_keywords = [x for x in response["results"] if x["alt_description"] and
+                           any(y in x["alt_description"].lower().split(" ") for y in keywords.lower().split(" "))]
+    if not containing_keywords:
+        return get_picture_by_keywords(keywords, image_filepath, per_page=per_page, orientation=orientation,
+                                       page=page + 1)
+
+    picture_data = random.choice(containing_keywords)
 
     picture_url = picture_data["urls"]["regular"]
     author = picture_data["user"]["name"]
     portfolio_url = picture_data["user"]["portfolio_url"]
     alt_description = picture_data["alt_description"]
 
-    text = f'Picture: "{alt_description.capitalize()}", by {author}.'
+    text = ""
+    if alt_description:
+        text += f'Picture: "{alt_description.capitalize()}", '
+    else:
+        text += "Picture "
+
+    text += f"by {author}."
+
     if portfolio_url:
-        text += f' Find his portofolio here: {portfolio_url}'
-    print(text)
+        text += f' Find their portofolio here: {portfolio_url}'
 
     # Download picture
     response = requests.get(picture_url, stream=True)
@@ -45,5 +68,7 @@ def get_picture_by_keywords(keywords: str, image_filepath: str) -> Tuple[str, st
 
 
 if __name__ == '__main__':
+    keywords = "coconut water frisee chopped green chilies"
     keywords = "Chili Garlic Paste"
-    print(get_picture_by_keywords(keywords))
+    keywords = "tortellini, cook and drain margarita salt yellow mustard seeds"
+    print(get_picture_by_keywords(keywords, "data/tmp.jpg"))
