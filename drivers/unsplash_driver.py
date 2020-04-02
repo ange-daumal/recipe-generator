@@ -3,7 +3,6 @@ import random
 import shutil
 from typing import Tuple
 
-import sys
 import requests
 
 from utils import io_ops
@@ -18,9 +17,12 @@ headers = {
     "Authorization": f"Client-ID {access_key}"
 }
 
+
 def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 20,
-                            orientation: str = "squarish", page: int = 1) -> Tuple[str, str]:
-    print(keywords)
+                            orientation: str = "squarish", page: int = 1, max_try: int =5) -> Tuple[bool, str]:
+    if page == max_try:
+        return False, ""
+
     response = requests.get(f"{api}/search/photos?query={keywords}"
                             f"&per_page={per_page}"
                             f"&page={page}"
@@ -29,7 +31,9 @@ def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 
                             headers=headers)
 
     if response.status_code != 200:
-        raise Exception(f"Unsplash: {response.text}")
+        # FIXME: From print to Log.
+        print(f"Unsplash: {response.text}")
+        return False, ""
 
     response = json.loads(response.text)
 
@@ -64,7 +68,7 @@ def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 
     with open(image_filepath, 'wb') as f:
         shutil.copyfileobj(response.raw, f)
 
-    return image_filepath, text
+    return True, text
 
 
 if __name__ == '__main__':

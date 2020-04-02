@@ -1,4 +1,4 @@
-from core import ingredients
+from core import main
 
 if __name__ == '__main__':
-    ingredients.post_sample()
+    main.post_sample()

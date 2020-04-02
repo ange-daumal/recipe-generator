@@ -18,31 +18,26 @@ def _get_page_access_token(response, page_id):
             return page["access_token"]
 
 
-# Get Page Access Token
-
-query = f"https://graph.facebook.com/{user_id}/accounts?access_token={user_access_token}"
-response = json.loads(requests.get(query).text)
-if "error" in response.keys():
-    print(response['error'])
-    sys.exit(1)
-
-page_access_token = _get_page_access_token(response, page_id)
-
-# Post as a Page
-
-graph = facebook.GraphAPI(access_token=page_access_token)
-
-# FIXME: Album ID is hardcoded
-album_id = 114196000226199
-
-
-def check_error(response: dict) -> str:
+def check_error(response: dict) -> dict:
     if "error" in response.keys():
         print(response['error'])
         sys.exit(1)
     if verbose:
         print("Success:", response)
     return response
+
+
+# Get Page Access Token
+
+query = f"https://graph.facebook.com/{user_id}/accounts?access_token={user_access_token}"
+response = json.loads(requests.get(query).text)
+check_error(response)
+
+page_access_token = _get_page_access_token(response, page_id)
+
+# Post as a Page
+
+graph = facebook.GraphAPI(access_token=page_access_token)
 
 
 def post_text(message: str) -> str:
@@ -58,7 +53,6 @@ def post_text(message: str) -> str:
 def post_picture(message: str, filepath: str) -> str:
     response = graph.put_photo(image=open(filepath, 'rb'),
                                message=message)
-    # , album_path=f"{album_id}/photos")
     return check_error(response)
 
 
