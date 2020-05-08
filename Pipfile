@@ -4,12 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+jupyter = "*"
 
 [packages]
 facebook-sdk = "*"
 python-dotenv = "*"
 pillow = "*"
 imageio = "*"
+nltk = "*"
 
 [requires]
 python_version = "3.7"

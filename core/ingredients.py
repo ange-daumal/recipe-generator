@@ -1,18 +1,95 @@
 import json
-import string
+import re
+import sys
+import unicodedata
 
-ingredients_file = "data/train.json"
+import nltk
+import random
+from utils import io_ops
+
+# Get recipes from multiple sources ;
+# AllRecipes.com, Epicurious.com, Foodnetwork.com
+
+ingredients_files = [f"data/recipe-box/recipes_raw_nosource_{src}.json"
+                     for src in ["ar", "epi", "fn"]]
+
+output_file = f"data/ingredients_list.pickle"
+output_file_test = f"data/ingredients_list_test.pickle"
+
+nltk.download('stopwords')
 
 trademarks = ["®", "hellmann", "sargento", "soy vay", "bertolli", "bacardi",
-              "heinz", "gold medal", "spam", "wish bone"]
+              "heinz", "gold medal", "spam", "wish bone", 'sugarcraft']
 
 not_vegan = ["fillets", "chicken", "boar", "salmon", "beef", "fish",
              "scallops", "pork", "squid", "tamales", "salami",
              "calamari", "turkey", "mutton", "loin", "steak",
              "calf", "duck", "lamb", "tuna", "branzino",
-             "snail", "bone", "shrimp", "goat"]
+             "snail", "bone", "shrimp", "goat", "veal",
+             'curd',  # <- lait caillé
+             'lobster', 'mentaiko', 'lard', 'buttermilk',
+             'halibut', 'casing', 'casings', 'crab', 'crabmeat',
+             ]
 
-not_an_ingredient = ["hand", "xuxu"]
+not_an_ingredient = ["hand", "xuxu", "coloring", "baton", 'water',
+                     'erythritol', 'equipment', 'available',
+                     'x sheets', 'ice', 'oxtail', 'garnish', 'ingredient',
+                     'canning', 'fruitcake',
+                     ]
+
+measures = [
+    'cup', 'can', 'teaspoon', 'tsp', 'tablespoon', 'tbsp', 'pound', 'lb', 'jar',
+    'bottle', 'stick', 'about', 'pounds', 'cups', 'pinch', 'appx', 'half',
+    'optional', 'milliter', 'micro', 'ounce', 'small', 'large', 'medium',
+    'envelope', 'ear', 'piece', 'drops', 'oz', 'bunch', 'slice', 'spoonful',
+    'advertisement', 'clove', 'pinches', 'inch', 'dash', 'gallon',
+    'bag', 'cheesecloth', 'pint', 'couple', 'dashe',
+    'ml', 'cl', 'g', 'kg', 'gram', 'strip', 'pod', 'double',
+    'decoration', 'tb', 'accompaniment', 'ring',
+]
+
+prep_details = [
+    'diced', 'stewed', 'chopped', 'crumbled', 'peeled', 'minced', 'fresh',
+    'divided', 'cooked', 'washed', 'softened', 'sliced', 'deveined', 'shaken',
+    'fine', 'seasoned', 'rest', 'cold', 'mashed', 'overripe', 'hot',
+    'cubed', 'uncooked', 'bottled', 'quartered', 'whole', 'wheat', 'packed',
+    'taste', 'semi', 'sweet', 'semisweet', 'unsweetened',
+    'assorted', 'pitted', 'plus', 'purpose', 'kosher', 'canned',
+    'finely', 'toasted', 'frozen', 'mixed', 'cut', 'squeezed', 'cracked',
+    'halved', 'roasted', 'grilled', 'dried', 'freshly', 'ground', 'coarse',
+    'beaten', 'blend', 'blended', 'seeded', 'grated', 'chilled', 'garnish',
+    'discarded', 'powdered', 'cooled', 'sifted', 'drained', 'granulated',
+    'skinned', 'sprinkles', 'ripe', 'extra', 'virgin', 'brewed', 'unsalted',
+    'bittersweet', 'good', 'quality', 'coursely', 'french', 'italian', 'recipe',
+    'brine', 'currants', 'icing', 'royal', 'shortening', 'corarsely',
+    'quart', 'spiced', 'prepared', 'dollop', 'neely', 'allspice',
+    'one', 'two', 'three', 'four', 'crystallized', 'puree', 'sized',
+    'israeli', 'sprigs', 'snipped', 'thickly', 'frosting', 'style',
+    'confectioners', 'cooking', 'spray', 'thinly', 'vegan',
+    'stilton', 'dry', 'crusty', 'pickled', 'grained', 'unfiltered',
+    'little', 'strong', 'sizes', 'nonstick', 'flaky', 'blanched', 'silvered',
+    'crushed', 'idiazábal', 'pibkcling', 'pimm', 'sweetened', 'drizzling',
+    'condensed', 'grain', 'coarsely', 'unsprayed', 'reduced',
+    'china', 'halves', 'distilled', 'purchased', 'soft', 'desired',
+    'slivered', 'hulled', 'shredded', 'melted', 'rolled', 'evaporated',
+    'salted', 'nonfat', 'pickling', 'delicata', 'unflavored', 'low',
+    'natural', 'plain', 'light', 'miniature', 'lengthwise', 'drippings',
+    'clarified', 'topping', 'stuffed', 'filling', 'non', 'fat', 'spent',
+    'vital', 'warm', 'hard', 'boiled', 'shelled', 'sauteed', 'sharp',
+    'package', 'packaged', 'master', 'mixture', 'precooked', 'rounded',
+    'paste', 'heaping', 'cheap', 'burmese', 'bran', 'hardening', 'splash',
+    'flax', 'glucose', 'wild', 'spread',  'dried', 'decorating',
+]
+
+stop_ingredient_words = measures + \
+                        [f"{m}s" for m in measures] + \
+                        prep_details + \
+                        list(nltk.corpus.stopwords.words('english'))
+
+translator = dict()
+for i in range(sys.maxunicode):
+    if unicodedata.category(chr(i)).startswith('P'):
+        translator.update({i: " "})
 
 
 def has_trademarks(ingredient) -> bool:
@@ -28,23 +105,98 @@ def is_not_an_ingredient(ingredient) -> bool:
 
 
 def should_be_removed(ingredient):
-    if len(ingredient.split(" ")) > 3:
+    if len(ingredient.split(" ")) > 2:
         return True
     ingredient = ingredient.lower()
-    return is_not_an_ingredient(ingredient) or has_trademarks(ingredient) or is_not_vegan(ingredient)
+    return is_not_an_ingredient(ingredient) or has_trademarks(
+        ingredient) or is_not_vegan(ingredient)
 
 
-def get_ingredients():
+def filter_ingredient(ingredient, test=False):
+    """
+    From sentence '2 pounds red potatoes, diced with peel ADVERTISEMENT'
+    to 'red potatoes'
+    :param ingredient:
+    :return:
+    """
+    ing = ingredient.lower()
+
+    if is_not_an_ingredient(ing) \
+            or has_trademarks(ing) \
+            or is_not_vegan(ing):
+        return ""
+
+    if test:
+        print(ing)
+
+    ing = ing.split(",")[0]  # remove what is after ,
+    ing = ing.split("(")[0]  # remove what is after (
+    ing = ing.split(" or ")[0]  # remove what is after ' or '
+
+    ing = ing.translate(translator)  # remove punctuation
+    ing = re.sub(r'[\d]', ' ', ing)  # remove digits
+
+    final_ing = ""
+    nb_words = 0
+    for i in ing.split(' '):
+        i = i.strip()
+        if i and len(i) > 1 and i not in stop_ingredient_words:
+            final_ing += f" {i}"
+            nb_words += 1
+
+    return final_ing.strip() if nb_words < 4 else ""
+
+
+def process_recipe_box_ingredients(test=False):
     ingredients = set()
-    with open(ingredients_file) as f:
-        rid_list = json.load(f)
+    for ingredients_file in ingredients_files:
+        with open(ingredients_file) as f:
+            recipes = json.load(f)
 
-        for rid in rid_list:
-            ingredients.update([string.capwords(ing) for ing in rid['ingredients']
-                                if not should_be_removed(ing)])
+            i = 0
+            if test:
+                values = list(recipes.values())
+                random.shuffle(values)
+            else:
+                values = recipes.values()
 
-    ingredients_list = list(ingredients)
+            for recipe in values:
+
+                if not recipe:
+                    continue
+
+                for recipe_ing in recipe['ingredients']:
+                    ing = filter_ingredient(recipe_ing, test=test)
+                    if ing:
+                        ingredients.update([ing])
+
+                i += 1
+                if test and i > 20:
+                    break
+
+        ingredients_list = list(ingredients)
+
+    if test:
+        n = 5
+        for i in range(1, int(len(ingredients_list) / n) + 1):
+            print(ingredients_list[(i - 1) * n: i * n])
+        print(ingredients_list[i * n:])
+
     print("Unique ingredients:", len(ingredients_list))
+
+    if test:
+        io_ops.save_obj(ingredients_list, output_file_test)
+    else:
+        io_ops.save_obj(ingredients_list, output_file)
+
     return ingredients_list
 
 
+def get_ingredients_list():
+    return io_ops.load_obj(output_file) or process_recipe_box_ingredients()
+
+
+if __name__ == '__main__':
+    test = not True
+    l = process_recipe_box_ingredients(test=test)
+    print(get_ingredients_list()[:10])

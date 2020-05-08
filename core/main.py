@@ -6,7 +6,7 @@ from drivers import fb_driver, unsplash_driver
 raw_picture_file = "data/tmp_raw.jpg"
 new_picture_file = "data/tmp_new.jpg"
 
-ingredients_list = ingredients.get_ingredients()
+ingredients_list = ingredients.get_ingredients_list()
 
 ordinal = lambda n: "%d%s" % (n, "tsnrhtdd"[(n // 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
 
