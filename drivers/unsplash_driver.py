@@ -26,8 +26,8 @@ def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 
     response = requests.get(f"{api}/search/photos?query={keywords}"
                             f"&per_page={per_page}"
                             f"&page={page}"
-                            f"&orientation={orientation}"
-                            "&order_by=latest",
+                            f"&orientation={orientation}",
+                            # "&order_by=latest",
                             headers=headers)
 
     if response.status_code != 200:

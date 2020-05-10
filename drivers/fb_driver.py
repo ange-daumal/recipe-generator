@@ -6,11 +6,7 @@ import requests
 
 from utils import io_ops
 
-user_id = io_ops.get_env_var("user_id")
-user_access_token = io_ops.get_env_var("user_access_token")
-page_id = io_ops.get_env_var("page_id")
 
-page_access_token = io_ops.get_env_var("page_access_token")
 
 def _get_page_access_token(response, page_id):
     for page in response["data"]:
@@ -29,19 +25,18 @@ def check_error(response: dict, verbose=False) -> dict:
 
 # Get Page Access Token
 
-if not page_access_token:
+def get_page_access_token(user_id, user_access_token):
     query = f"https://graph.facebook.com/{user_id}/accounts?access_token={user_access_token}"
     response = json.loads(requests.get(query).text)
     check_error(response)
 
     page_access_token = _get_page_access_token(response, page_id)
+    return page_access_token
+
 
 # Post as a Page
 
-graph = facebook.GraphAPI(access_token=page_access_token)
-
-
-def post_text(message: str) -> str:
+def post_text(page_id, page_access_token, message: str) -> str:
     query = f"https://graph.facebook.com/{page_id}/feed" \
         f"?message={message}" \
         f"&fields=created_time,from,id,message,permalink_url" \
@@ -51,12 +46,17 @@ def post_text(message: str) -> str:
     return check_error(response, verbose=True)
 
 
-def post_picture(message: str, filepath: str) -> str:
+def post_picture(page_access_token, message: str,
+                 filepath: str) -> str:
+    graph = facebook.GraphAPI(access_token=page_access_token)
     response = graph.put_photo(image=open(filepath, 'rb'),
                                message=message)
     return check_error(response, verbose=True)
 
 
 if __name__ == '__main__':
+    page_id = io_ops.get_env_var("page_id")
+    page_access_token = io_ops.get_env_var("page_access_token")
+
     message = "Hello, this is a test."
     post_text(message)

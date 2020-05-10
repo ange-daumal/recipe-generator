@@ -29,12 +29,20 @@ not_vegan = ["fillets", "chicken", "boar", "salmon", "beef", "fish",
              'curd',  # <- lait caillé
              'lobster', 'mentaiko', 'lard', 'buttermilk',
              'halibut', 'casing', 'casings', 'crab', 'crabmeat',
+             'egg', 'cheese', 'black angus',
+             # cheeses
+             'cresenza', 'clams',
              ]
 
 not_an_ingredient = ["hand", "xuxu", "coloring", "baton", 'water',
                      'erythritol', 'equipment', 'available',
                      'x sheets', 'ice', 'oxtail', 'garnish', 'ingredient',
-                     'canning', 'fruitcake',
+                     'canning', 'fruitcake', 'slotted spoon',
+
+                     # wtf words
+                     'ready', 'use',
+                     # recipe, not ingredient
+                     'cilantro mint chutney',
                      ]
 
 measures = [
@@ -45,7 +53,9 @@ measures = [
     'advertisement', 'clove', 'pinches', 'inch', 'dash', 'gallon',
     'bag', 'cheesecloth', 'pint', 'couple', 'dashe',
     'ml', 'cl', 'g', 'kg', 'gram', 'strip', 'pod', 'double',
-    'decoration', 'tb', 'accompaniment', 'ring',
+    'decoration', 'tb', 'accompaniment', 'ring', 'shot',
+    'quarter', 'chunk', 'cube', 'deciliter', 'preserve', 'inche',
+
 ]
 
 prep_details = [
@@ -72,19 +82,24 @@ prep_details = [
     'condensed', 'grain', 'coarsely', 'unsprayed', 'reduced',
     'china', 'halves', 'distilled', 'purchased', 'soft', 'desired',
     'slivered', 'hulled', 'shredded', 'melted', 'rolled', 'evaporated',
-    'salted', 'nonfat', 'pickling', 'delicata', 'unflavored', 'low',
+    'salted', 'nonfat', 'pickling', 'delicata', 'unflavored',
+    'low', 'lowfat',
     'natural', 'plain', 'light', 'miniature', 'lengthwise', 'drippings',
     'clarified', 'topping', 'stuffed', 'filling', 'non', 'fat', 'spent',
     'vital', 'warm', 'hard', 'boiled', 'shelled', 'sauteed', 'sharp',
     'package', 'packaged', 'master', 'mixture', 'precooked', 'rounded',
     'paste', 'heaping', 'cheap', 'burmese', 'bran', 'hardening', 'splash',
     'flax', 'glucose', 'wild', 'spread',  'dried', 'decorating',
+    'reserved', 'six', 'seven', 'eight', 'nine', 'ten', 'premium',
+    'cube', 'mix', 'container', 'baby', 'bunches', 'asian',
+    'aged', 'new', 'roughly', 'reduction', 'hickory', 'jarred', 'sour',
+    'dayold', 'brush', 'extralarge', 'extra', 'large', 'rinsed',
+    'gratedfresh', 'imported', 'several',
+    # brands
+    'myers', 'aarti',
+
 ]
 
-stop_ingredient_words = measures + \
-                        [f"{m}s" for m in measures] + \
-                        prep_details + \
-                        list(nltk.corpus.stopwords.words('english'))
 
 translator = dict()
 for i in range(sys.maxunicode):
@@ -112,7 +127,7 @@ def should_be_removed(ingredient):
         ingredient) or is_not_vegan(ingredient)
 
 
-def filter_ingredient(ingredient, test=False):
+def filter_ingredient(ingredient, stop_ingredient_words, test=False):
     """
     From sentence '2 pounds red potatoes, diced with peel ADVERTISEMENT'
     to 'red potatoes'
@@ -148,6 +163,12 @@ def filter_ingredient(ingredient, test=False):
 
 
 def process_recipe_box_ingredients(test=False):
+
+    stop_ingredient_words = measures + \
+                        [f"{m}s" for m in measures] + \
+                        prep_details + \
+                        list(nltk.corpus.stopwords.words('english'))
+
     ingredients = set()
     for ingredients_file in ingredients_files:
         with open(ingredients_file) as f:
@@ -166,7 +187,9 @@ def process_recipe_box_ingredients(test=False):
                     continue
 
                 for recipe_ing in recipe['ingredients']:
-                    ing = filter_ingredient(recipe_ing, test=test)
+                    ing = filter_ingredient(recipe_ing,
+                                            stop_ingredient_words,
+                                            test=test)
                     if ing:
                         ingredients.update([ing])
 
@@ -197,6 +220,6 @@ def get_ingredients_list():
 
 
 if __name__ == '__main__':
-    test = not True
+    test = True
     l = process_recipe_box_ingredients(test=test)
     print(get_ingredients_list()[:10])

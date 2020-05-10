@@ -1,4 +1,4 @@
 from core import main
 
 if __name__ == '__main__':
-    main.post_recipe_sample()
+    main.post_cocktail_sample()
