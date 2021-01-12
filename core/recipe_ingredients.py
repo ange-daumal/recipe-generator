@@ -4,8 +4,8 @@ import sys
 import unicodedata
 
 import nltk
-import random
 from utils import io_ops
+from collections import Counter
 
 # Get recipes from multiple sources ;
 # AllRecipes.com, Epicurious.com, Foodnetwork.com
@@ -29,9 +29,11 @@ not_vegan = ["fillets", "chicken", "boar", "salmon", "beef", "fish",
              'curd',  # <- lait caillé
              'lobster', 'mentaiko', 'lard', 'buttermilk',
              'halibut', 'casing', 'casings', 'crab', 'crabmeat',
-             'egg', 'cheese', 'black angus',
+             'egg', 'cheese', 'black angus', 'shells',
              # cheeses
              'cresenza', 'clams',
+             # charcuteries
+             'cotechino',
              ]
 
 not_an_ingredient = ["hand", "xuxu", "coloring", "baton", 'water',
@@ -43,6 +45,7 @@ not_an_ingredient = ["hand", "xuxu", "coloring", "baton", 'water',
                      'ready', 'use',
                      # recipe, not ingredient
                      'cilantro mint chutney',
+                     'dressing'
                      ]
 
 measures = [
@@ -55,6 +58,7 @@ measures = [
     'ml', 'cl', 'g', 'kg', 'gram', 'strip', 'pod', 'double',
     'decoration', 'tb', 'accompaniment', 'ring', 'shot',
     'quarter', 'chunk', 'cube', 'deciliter', 'preserve', 'inche',
+    'head',
 
 ]
 
@@ -89,17 +93,25 @@ prep_details = [
     'vital', 'warm', 'hard', 'boiled', 'shelled', 'sauteed', 'sharp',
     'package', 'packaged', 'master', 'mixture', 'precooked', 'rounded',
     'paste', 'heaping', 'cheap', 'burmese', 'bran', 'hardening', 'splash',
-    'flax', 'glucose', 'wild', 'spread',  'dried', 'decorating',
+    'flax', 'glucose', 'wild', 'spread', 'dried', 'decorating',
     'reserved', 'six', 'seven', 'eight', 'nine', 'ten', 'premium',
-    'cube', 'mix', 'container', 'baby', 'bunches', 'asian',
+    'cube', 'mix', 'container', 'baby', 'bunches',
     'aged', 'new', 'roughly', 'reduction', 'hickory', 'jarred', 'sour',
     'dayold', 'brush', 'extralarge', 'extra', 'large', 'rinsed',
-    'gratedfresh', 'imported', 'several',
+    'gratedfresh', 'imported', 'several', 'fillings', 'organic',
+    'candies', 'matchsticks', 'together', 'slab', 'smokehouse',
+    'loosely', 'fronds', 'cleaned', 'grade', 'grape', 'herbed',
+    'lightened', 'crustless', 'sourdough', 'peel', 'traditional',
+    'preserved', 'candy', 'brunoised', 'disk', 'best',
+    'process', 'food', 'candied', 'packages', 'long', 'browned',
+    # type of foods
+    'heavy', 'long', 'gluten', 'free', 'fully', 'smoked',
+    # countrys
+    'english', 'asian', 'bulgarian', 'spanish',
     # brands
     'myers', 'aarti',
 
 ]
-
 
 translator = dict()
 for i in range(sys.maxunicode):
@@ -162,55 +174,30 @@ def filter_ingredient(ingredient, stop_ingredient_words, test=False):
     return final_ing.strip() if nb_words < 4 else ""
 
 
-def process_recipe_box_ingredients(test=False):
-
+def process_recipe_box_ingredients():
     stop_ingredient_words = measures + \
-                        [f"{m}s" for m in measures] + \
-                        prep_details + \
-                        list(nltk.corpus.stopwords.words('english'))
-
-    ingredients = set()
+                            [f"{m}s" for m in measures] + \
+                            prep_details + \
+                            list(nltk.corpus.stopwords.words('english'))
+    ingredients = Counter()
     for ingredients_file in ingredients_files:
         with open(ingredients_file) as f:
             recipes = json.load(f)
 
-            i = 0
-            if test:
-                values = list(recipes.values())
-                random.shuffle(values)
-            else:
-                values = recipes.values()
-
-            for recipe in values:
+            for recipe in recipes.values():
 
                 if not recipe:
                     continue
 
                 for recipe_ing in recipe['ingredients']:
                     ing = filter_ingredient(recipe_ing,
-                                            stop_ingredient_words,
-                                            test=test)
+                                            stop_ingredient_words)
                     if ing:
                         ingredients.update([ing])
 
-                i += 1
-                if test and i > 20:
-                    break
+    ingredients_list = [x[0] for x in ingredients.most_common(950)]
 
-        ingredients_list = list(ingredients)
-
-    if test:
-        n = 5
-        for i in range(1, int(len(ingredients_list) / n) + 1):
-            print(ingredients_list[(i - 1) * n: i * n])
-        print(ingredients_list[i * n:])
-
-    print("Unique ingredients:", len(ingredients_list))
-
-    if test:
-        io_ops.save_obj(ingredients_list, output_file_test)
-    else:
-        io_ops.save_obj(ingredients_list, output_file)
+    io_ops.save_obj(ingredients_list, output_file)
 
     return ingredients_list
 
@@ -220,6 +207,6 @@ def get_ingredients_list():
 
 
 if __name__ == '__main__':
-    test = True
-    l = process_recipe_box_ingredients(test=test)
+    test = not True
+    l = process_recipe_box_ingredients()
     print(get_ingredients_list()[:10])

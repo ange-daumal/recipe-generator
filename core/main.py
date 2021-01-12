@@ -73,6 +73,6 @@ def post_cocktail_sample():
 
 
 if __name__ == '__main__':
-    # samples = get_recipe_sample(k=40)
-    # print(samples)
-    print(post_cocktail_sample())
+    samples = get_recipe_sample(k=40)
+    print(samples)
+    #print(post_cocktail_sample())

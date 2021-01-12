@@ -28,7 +28,7 @@ alcohols = ["vodka", "red wine", "rum", "cognac", "dry curacao", "triple sec",
             'Grand Marnier', 'hazelnut liqueur',
             ]
 thinners_common = ["simple syrup", "honey syrup", "sparkling water", ]
-thinners_rare = ["milk", "lime juice", "lemon juice", "grapefruit lime",
+thinners_rare = ["milk", "lime juice", "lemon juice", "grapefruit juice",
                  "rhubarb infusion", "sage infusion", 'brewed coffee',
                  'melted dark chocolate', 'cranberry juice',
                  'chamomile infusion', 'tomato juice', 'worcestershire sauce',
