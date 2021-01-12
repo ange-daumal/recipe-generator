@@ -104,6 +104,7 @@ prep_details = [
     'lightened', 'crustless', 'sourdough', 'peel', 'traditional',
     'preserved', 'candy', 'brunoised', 'disk', 'best',
     'process', 'food', 'candied', 'packages', 'long', 'browned',
+    'old fashioned',
     # type of foods
     'heavy', 'long', 'gluten', 'free', 'fully', 'smoked',
     # countrys

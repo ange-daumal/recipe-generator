@@ -12,6 +12,7 @@ python-dotenv = "*"
 pillow = "*"
 imageio = "*"
 nltk = "*"
+pandas = "*"
 
 [requires]
 python_version = "3.7"

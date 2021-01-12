@@ -1,6 +1,6 @@
 import random
 
-from core import image_generation, recipe_ingredients, cocktail_ingredients
+from core import image_generation, parse_ingredients, cocktail_ingredients
 from drivers import fb_driver, unsplash_driver
 from utils import io_ops
 
@@ -10,7 +10,7 @@ recipe_newpic_file = "data/recipe_new.jpg"
 cocktail_rawpic_file = "data/cocktail_raw.jpg"
 cocktail_newpic_file = "data/cocktail_new.jpg"
 
-ingredients_list = recipe_ingredients.get_ingredients_list()
+ingredients_list = parse_ingredients.get_ingredients_list()
 
 ordinal = lambda n: "%d%s" % (
     n, "tsnrhtdd"[(n // 10 % 10 != 1) * (n % 10 < 4) * n % 10::4])
