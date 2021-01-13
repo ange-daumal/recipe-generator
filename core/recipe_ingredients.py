@@ -2,49 +2,59 @@ from parse import parse_recipes, parse_ingredients
 import random
 import numpy as np
 import pandas as pd
-from utils import data_paths
+from utils import filepaths, io_ops
 import datetime
+
+from drivers import fb_driver
 
 
 class Ingredients:
 
     def __init__(self):
-        self.ingredients = parse_ingredients.get_ingredients_list()
+        self.ingredients_list = parse_ingredients.get_ingredients_list()
+        self.ingredients_index = dict(zip(self.ingredients_list,
+                                          np.arange(
+                                              len(self.ingredients_list))))
         try:
-            df = pd.read_csv(data_paths.ingredients_matrix)
-            df = parse_recipes.rm_unnamed(df)
+            matrix_df = pd.read_csv(filepaths.ingredients_matrix)
+            matrix_df = parse_recipes.rm_unnamed(matrix_df)
         except FileNotFoundError:
-            # Create ingredients matrix
-            df = parse_recipes.get_ingredients_df()
-            df = parse_recipes.apply_log(df)
-            df.to_csv(data_paths.ingredients_matrix, index=False)
-        self.df = df
+            # Create ingredients_list matrix
+            matrix_df = parse_recipes.get_ingredients_df()
+            matrix_df = parse_recipes.apply_log(matrix_df)
+            matrix_df.to_csv(filepaths.ingredients_matrix, index=False)
+        self.matrix_df = matrix_df
+        self.access_token = io_ops.get_env_var("recipe_access_token")
+        self.fb_reacts = ["NONE", "LIKE", "LOVE", "WOW", "HAHA", "SORRY",
+                          "ANGRY"]
 
-    def get_combination_for(self, first_ing, threshold=0):
-        combinable_ingredients = self.df[first_ing][
-            self.df[first_ing] > threshold]
+    def get_combination_for(self, first_ing, threshold: float = 0):
+        combinable_ingredients = self.matrix_df[first_ing][
+            self.matrix_df[first_ing] > threshold]
         combinable_ingredients = combinable_ingredients.reset_index()
         combinable_ingredients = combinable_ingredients['index'].apply(
-            lambda x: self.ingredients[x])
+            lambda x: self.ingredients_list[x])
         return combinable_ingredients.to_list()
 
     def get_random_versus_combination(self, set_length=2):
-        first_ing = self.ingredients[random.randint(0,
-                                                    len(self.ingredients)) // 4]
-        combinable_ingredients = self.get_combination_for(first_ing)
+        first_ing = self.ingredients_list[
+            random.randint(0, len(self.ingredients_list)) // 4]
+        combinable_ingredients = self.get_combination_for(first_ing,
+                                                          threshold=0.5)
         other_ings = random.sample(combinable_ingredients, set_length)
         return [first_ing, *other_ings]
 
     def get_good_combinations(self, n=10, set_length=3):
-        first_ings = random.sample(self.ingredients, n)
+        first_ings = random.sample(self.ingredients_list, n)
         combinations = []
 
         for first_ing in first_ings:
             current = [first_ing]
             n_selected = set_length * 8
-            best_others_index = np.argsort(-self.df[first_ing])[:n_selected]
+            best_others_index = np.argsort(-self.matrix_df[first_ing])[
+                                :n_selected]
             for i in random.sample(list(best_others_index), set_length - 1):
-                current.append(self.ingredients[i])
+                current.append(self.ingredients_list[i])
 
             combinations.append(current)
         return combinations
@@ -52,7 +62,7 @@ class Ingredients:
     @staticmethod
     def add_to_pending(post_id, *ingredients):
         try:
-            df = pd.read_csv(data_paths.versus_pending)
+            df = pd.read_csv(filepaths.versus_pending)
             df = parse_recipes.rm_unnamed(df)
         except FileNotFoundError:
             df = pd.DataFrame(columns=["post_id", "first_ing", "second_ing",
@@ -63,30 +73,105 @@ class Ingredients:
                              pd.to_datetime('now').replace(microsecond=0)]))
 
         df = df.append(row_dict, ignore_index=True)
-        df.to_csv(data_paths.versus_pending, index=False)
+        df.to_csv(filepaths.versus_pending, index=False)
 
-    def handle_pending(self, hours_threshold=48):
+    def update_score(self, ing1, ing2, score, verbose):
+        ing1_index = self.ingredients_index[ing1]
+        ing2_index = self.ingredients_index[ing2]
+
+        previous = self.matrix_df[ing1][ing2_index]
+        new = previous + score
+
+        self.matrix_df[ing1][ing2_index] = new
+        self.matrix_df[ing2][ing1_index] = new
+
+        if verbose:
+            print(f"({ing1}, {ing2}): {previous} => {new}")
+
+    def compute_score(self, expired, reactions_count, verbose):
+        love = reactions_count['LOVE']
+        wow = reactions_count['WOW']
+        haha = reactions_count['HAHA']
+        total_points = love + wow + haha
+
+        second_ing_score = love / total_points - 0.1
+        third_ing_score = wow / total_points - 0.1
+
+        self.update_score(expired[1], expired[2], second_ing_score, verbose)
+        self.update_score(expired[1], expired[3], third_ing_score, verbose)
+
+    def _get_history(self):
         try:
-            df = pd.read_csv(data_paths.versus_pending)
+            history = pd.read_csv(filepaths.versus_history)
+        except FileNotFoundError:
+            columns = ["post_id", "first_ing", "second_ing", "third_ing",
+                       "post_timestamp"] + self.fb_reacts
+            history = pd.DataFrame(columns=columns)
+        return history
+
+    def handle_pending(self, hours_threshold=0, verbose=True,
+                       save_modifications=True):
+        """
+        # Facebook Reactions
+        Facebook Reacts are of type enum {NONE, LIKE, LOVE, WOW, HAHA, SORRY, ANGRY}
+        Care reactions are counted as Like reactions (ref https://developers.facebook.com/docs/graph-api/reference/v9.0/object/reactions)
+
+        :param hours_threshold:
+        :return:
+        """
+        try:
+            df = pd.read_csv(filepaths.versus_pending)
         except FileNotFoundError:
             return True
+
+        history = self._get_history()
+
         expired_versus = pd.to_datetime('now') - \
                          pd.to_datetime(df['post_timestamp']) > \
                          datetime.timedelta(hours=hours_threshold)
 
-        for expired in df[expired_versus]:
-            # Get FB reactions
+        for expired in df[expired_versus].values:
+            if verbose:
+                print(expired)
+
+            post_id = expired[0]
+            reactions_count = dict.fromkeys(self.fb_reacts, 0)
+            response = fb_driver.get_post_reactions(self.access_token, post_id)
+
+            if response['code'] == 100:  # Deleted post
+                continue
+
+            for react in response['data']:
+                reactions_count[react['type']] += 1
+
+            if verbose:
+                print(response)
+                print(reactions_count)
+
             # Update history
+            history_content = dict(zip(df.columns, expired))
+            history_content.update(reactions_count)
+            history.append([history_content], ignore_index=True)
+
             # Update matrix
-            # Delete expired
+            self.compute_score(expired, reactions_count, verbose)
+
+            if save_modifications:
+                history.to_csv(filepaths.versus_history, index=False)
+                self.matrix_df.to_csv(filepaths.ingredients_matrix, index=False)
+
+        if save_modifications:
+            # Delete computed versus
+            df = df[~expired_versus]
+            df.to_csv(filepaths.versus_pending, index=False)
             pass
+
+        return True
 
 
 if __name__ == '__main__':
-    from pprint import pprint
-
     ingredients = Ingredients()
-    # x = ingredients.get_random_versus_combination(set_length=3)
-    # x = ingredients.get_good_combinations()
+    # x = ingredients_list.get_random_versus_combination(set_length=3)
+    # x = ingredients_list.get_good_combinations()
     # pprint(x)
-    print(ingredients.df)
+    ingredients.handle_pending(save_modifications=False)

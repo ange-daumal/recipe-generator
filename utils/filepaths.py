@@ -10,7 +10,7 @@ options_reacts_fp = ["data/storage/like_react.png",
 output_ingredients_file = f"data/storage/ingredients_list.pickle"
 output_recipes_file = f"data/storage/recipes_list.json"
 
-# Computed ingredients score
+# Computed ingredients_list score
 ingredients_combinations_csv = "data/storage/ingredients_combinations.csv"
 ingredients_matrix = "data/storage/ingredients_matrix.csv"
 

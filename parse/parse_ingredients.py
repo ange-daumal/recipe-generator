@@ -5,7 +5,7 @@ import unicodedata
 
 import nltk
 
-from utils.data_paths import ingredients_files, output_ingredients_file, \
+from utils.filepaths import ingredients_files, output_ingredients_file, \
     output_recipes_file
 from utils import io_ops
 from collections import Counter
@@ -39,6 +39,7 @@ not_an_ingredient = ["hand", "xuxu", "coloring", "baton", 'water',
                      'erythritol', 'equipment', 'available',
                      'x sheets', 'ice', 'oxtail', 'garnish', 'ingredient',
                      'canning', 'fruitcake', 'slotted spoon',
+                     'ghee',
 
                      # wtf words
                      'ready', 'use',
@@ -103,7 +104,7 @@ prep_details = [
     'lightened', 'crustless', 'sourdough', 'peel', 'traditional',
     'preserved', 'candy', 'brunoised', 'disk', 'best',
     'process', 'food', 'candied', 'packages', 'long', 'browned',
-    'old fashioned',
+    'old fashioned', 'whipped', 'frying',
     # type of foods
     'heavy', 'long', 'gluten', 'free', 'fully', 'smoked',
     # countrys
@@ -193,7 +194,7 @@ def parse_recipe_ingredients():
                     continue
 
                 cleaned_ingredients = []
-                for recipe_ing in recipe['ingredients']:
+                for recipe_ing in recipe['ingredients_list']:
                     ing = filter_ingredient(recipe_ing,
                                             stop_ingredient_words)
                     if ing:

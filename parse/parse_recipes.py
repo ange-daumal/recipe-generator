@@ -5,9 +5,9 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 
-import utils.data_paths
+import utils.filepaths
 from parse import parse_ingredients
-from utils.data_paths import ingredients_combinations_csv
+from utils.filepaths import ingredients_combinations_csv
 
 
 def _get_ingredients_in_dict(ingredients, ingredients_index):
@@ -41,12 +41,12 @@ def parse_recipes(ingredients_list):
     ingredients_index = dict(
         zip(ingredients_list, np.arange(len(ingredients_list))))
 
-    recipes_file = utils.data_paths.output_recipes_file
+    recipes_file = utils.filepaths.output_recipes_file
     with open(recipes_file, 'r') as recipes_fp:
         recipes = json.load(recipes_fp)
 
     for recipe in tqdm(recipes):
-        ingredients_in_dict = _get_ingredients_in_dict(recipe['ingredients'],
+        ingredients_in_dict = _get_ingredients_in_dict(recipe['ingredients_list'],
                                                        ingredients_index)
 
         combinations = itertools.combinations(ingredients_in_dict, 2)

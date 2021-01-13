@@ -83,8 +83,8 @@ def get_ingredients(max_ingredient=3,
 
 
 sentences_step1 = [
-    f"Build all ingredients.",
-    f"Combine all ingredients.",
+    f"Build all ingredients_list.",
+    f"Combine all ingredients_list.",
 ]
 
 sentences_step2 = [

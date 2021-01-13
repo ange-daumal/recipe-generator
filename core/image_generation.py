@@ -2,7 +2,7 @@ from typing import List
 
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageChops
 
-from utils.data_paths import reacts_fp, options_reacts_fp
+from utils.filepaths import reacts_fp, options_reacts_fp
 
 
 def get_pos(width: int, height: int, k: int):
@@ -108,7 +108,21 @@ def _crop_middle(img):
     return img
 
 
-def _add_react_image(img, react_img, resize=(300, 300), where: str ='middle',
+def _crop_squarish(img):
+    width, height = img.size
+    crop_rectangle = None
+
+    # crop_rectangle is a 4-tuple (left, upper, right, lower)
+    if width > height and width / height > 1.2:
+        margin = (width - height) // 4
+        crop_rectangle = (margin, 0, width - margin, height)
+
+    if crop_rectangle:
+        img = img.crop(crop_rectangle)
+    return img
+
+
+def _add_react_image(img, react_img, resize=(300, 300), where: str = 'middle',
                      height_offset: int = 170, text: str = ""):
     width, height = img.size
     react_img = react_img.resize(resize)
@@ -139,7 +153,6 @@ def _add_react_image(img, react_img, resize=(300, 300), where: str ='middle',
     if text:
         output = _draw_text(output, text, size=40, loc=text_loc)
 
-
     return output
 
 
@@ -149,6 +162,7 @@ def _generate_versus_images(images_fp, samples_text):
 
     for i, text in zip(range(len(images)), samples_text):
         img = images[i]
+        img = _crop_squarish(img)
         img = _add_react_image(img, react_images[i], where='middle')
         img = _draw_text(img, text, height_offset=120, size=45)
         img = _crop_middle(img)
@@ -184,7 +198,8 @@ def versus_label(raw_picture_files: List[str], samples: List[str],
     img_out = _join_images(images)
     img_out = _draw_text(img_out, samples[0], height_offset=-20)
 
-    for react, text, offset in zip(options_reacts, options_texts, options_offsets):
+    for react, text, offset in zip(options_reacts, options_texts,
+                                   options_offsets):
         img_out = _add_react_image(img_out, react, resize=(70, 70),
                                    where='bottom', height_offset=offset,
                                    text=text)

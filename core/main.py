@@ -1,7 +1,7 @@
 from core import image_generation, recipe_ingredients
 from parse import cocktail_ingredients, parse_ingredients
 from drivers import fb_driver, unsplash_driver, pexels_driver
-from utils import io_ops, data_paths
+from utils import io_ops, filepaths
 
 ingredients_list = parse_ingredients.get_ingredients_list()
 
@@ -14,6 +14,7 @@ recipe_access_token = io_ops.get_env_var("recipe_access_token")
 cocktail_id = io_ops.get_env_var("cocktail_page_id")
 cocktail_access_token = io_ops.get_env_var("cocktail_access_token")
 
+ingredient = recipe_ingredients.Ingredients()
 
 def post_recipe_sample(k=3):
     ingredient = recipe_ingredients.Ingredients()
@@ -25,16 +26,16 @@ def post_recipe_sample(k=3):
 
     keywords = " ".join(samples)
     success, picture_text = unsplash_driver.get_picture_by_keywords(keywords,
-                                                                    data_paths.recipe_rawpic_file)
+                                                                    filepaths.recipe_rawpic_file)
 
     post_text = f"{message}\nPicture {picture_text}"
     print(post_text)
 
     if success:
-        image_generation.label(data_paths.recipe_rawpic_file, samples,
-                               data_paths.recipe_newpic_file)
+        image_generation.label(filepaths.recipe_rawpic_file, samples,
+                               filepaths.recipe_newpic_file)
         return fb_driver.post_picture(recipe_access_token, post_text,
-                                      data_paths.recipe_newpic_file)
+                                      filepaths.recipe_newpic_file)
     else:
         return fb_driver.post_text_http_request(page_id, recipe_access_token,
                                                 post_text)
@@ -48,24 +49,25 @@ def post_cocktail_sample():
 
     keywords = ' '.join(flatten(sample))
     success, picture_text = unsplash_driver.get_picture_by_keywords(keywords,
-                                                                    data_paths.cocktail_rawpic_file)
+                                                                    filepaths.cocktail_rawpic_file)
     post_text = f"{message}\nPicture {picture_text}"
     print(post_text)
 
     if success:
-        image_generation.label(data_paths.cocktail_rawpic_file,
+        image_generation.label(filepaths.cocktail_rawpic_file,
                                list(map(lambda s: s.capitalize(),
                                         flatten(sample)[:3])),
-                               data_paths.cocktail_newpic_file)
+                               filepaths.cocktail_newpic_file)
 
         return fb_driver.post_picture(cocktail_access_token, post_text,
-                                      data_paths.cocktail_newpic_file)
+                                      filepaths.cocktail_newpic_file)
     else:
         return fb_driver.post_text_http_request(page_id, cocktail_access_token,
                                                 post_text)
 
 
-def post_recipe_versus():
+def get_versus_post_content():
+
     """
     # Emojis
     Python Source Code come from https://www.fileformat.info/info/unicode/char
@@ -78,7 +80,6 @@ def post_recipe_versus():
                          orange_heart=u"\U0001F9E1",
                          open_mouth=u"\U0001F62E")
 
-    ingredient = recipe_ingredients.Ingredients()
     samples = ingredient.get_random_versus_combination(set_length=2)
     print(samples)
     first_ing, second_ing, third_ing = [sample.capitalize() for sample in
@@ -90,19 +91,19 @@ def post_recipe_versus():
         f"{emojis_pycode['orange_heart']} LOVE REACT: " \
         f"{first_ing} + {second_ing}\r\n" \
         f"{emojis_pycode['open_mouth']} WOW REACT: " \
-        f"{first_ing} + {third_ing}\r\n" \
-        "Who will win?\r\n" \
-        "You have 48 hours to decide!\r\n"
+        f"{first_ing} + {third_ing}\r\n\r\n" \
+        "Who will win?\r\n\r\n" \
+        "You have 48 hours to decide!\r\n\r\n"
 
     success, picture_1_text = pexels_driver.get_picture_by_keywords(
-        second_ing, data_paths.versus1_img)
+        [second_ing], filepaths.versus1_img)
 
     if not success:
         print("Did not find picture for", second_ing)
         return post_recipe_versus()
 
     success, picture_2_text = pexels_driver.get_picture_by_keywords(
-        third_ing, data_paths.versus2_img)
+        [third_ing], filepaths.versus2_img)
 
     if not success:
         print("Did not find picture for", third_ing)
@@ -114,20 +115,39 @@ def post_recipe_versus():
     # Use versus generator image
     img_text = [f"What's tastier?\r\n{first_ing} with...",
                 second_ing, third_ing]
-    image_generation.versus_label([data_paths.versus1_img,
-                                   data_paths.versus2_img],
-                                  img_text, data_paths.recipe_newpic_file)
+    image_generation.versus_label([filepaths.versus1_img,
+                                   filepaths.versus2_img],
+                                  img_text, filepaths.recipe_newpic_file)
 
     # Post, get post id
-    print(post_text)
-    response = fb_driver.post_picture(recipe_access_token, post_text,
-                                      data_paths.recipe_newpic_file)
+    return samples, post_text, filepaths.recipe_newpic_file
 
-    # Store all infos
+
+def post_recipe_versus():
+    samples, post_text, image_path = get_versus_post_content()
+    response = fb_driver.post_picture(recipe_access_token, post_text,
+                                      filepaths.recipe_newpic_file)
+
+    ingredient.add_to_pending(response['post_id'], *samples)
+
+def validate_versus_post():
+    ok = False
+    while not ok:
+        samples, post_text, image_path = get_versus_post_content()
+        print(post_text)
+        answer = input("Are you ok with posting this? (y/n)")
+        if answer == 'y':
+            ok = True
+
+    response = fb_driver.post_picture(recipe_access_token, post_text,
+                                      filepaths.recipe_newpic_file)
+    print(response)
     ingredient.add_to_pending(response['post_id'], *samples)
 
 
 if __name__ == '__main__':
     # print(post_cocktail_sample())
     # print(post_recipe_sample())
-    print(post_recipe_versus())
+    #print(post_recipe_versus())
+    #get_versus_post_content()
+    validate_versus_post()

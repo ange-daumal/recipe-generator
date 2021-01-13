@@ -17,9 +17,8 @@ headers = {
 
 
 def get_picture_by_keywords(keywords, image_filepath,
-                            orientation='square', per_page=5):
+                            per_page=2):
     response = requests.get(f"{api}/search?query={' '.join(keywords)}"
-                            f"&orientation={orientation}"
                             f"&per_page={per_page}",
                             headers=headers)
 
@@ -38,7 +37,7 @@ def get_picture_by_keywords(keywords, image_filepath,
     text = f"from {author}"
 
     if portfolio_url:
-        text += f'. Find their portofolio here: {portfolio_url}'
+        text += f'. Find more of their work here: {portfolio_url}'
 
     # Download picture
     response = requests.get(picture_url, stream=True)

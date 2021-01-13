@@ -1,6 +1,11 @@
 .idea/*
 data/*
 
+# MacOS
+.DS_Store
+__MACOSX/
+*.jpg
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

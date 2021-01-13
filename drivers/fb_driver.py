@@ -61,9 +61,17 @@ def post_picture(page_access_token, message: str, filepath: str):
     return check_error(response, verbose=True)
 
 
+def get_post_reactions(page_access_token, post_id):
+    query = f"https://graph.facebook.com/{post_id}/reactions" \
+        f"?access_token={page_access_token}"
+
+    response = json.loads(requests.get(query).text)
+    return check_error(response, verbose=True)
+
+
 if __name__ == '__main__':
     page_id = io_ops.get_env_var("page_id")
     page_access_token = io_ops.get_env_var("page_access_token")
 
-    message = "Hello, this is a test."
-    post_text_http_request(message)
+    post_id = '113704106942055_238997857746012'
+    print(get_post_reactions(page_access_token, post_id))
