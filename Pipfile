@@ -13,6 +13,7 @@ pillow = "*"
 imageio = "*"
 nltk = "*"
 pandas = "*"
+tqdm = "*"
 
 [requires]
 python_version = "3.7"

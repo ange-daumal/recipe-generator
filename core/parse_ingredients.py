@@ -6,15 +6,17 @@ import unicodedata
 import nltk
 from utils import io_ops
 from collections import Counter
+from tqdm import tqdm
 
 # Get recipes from multiple sources ;
-# AllRecipes.com, Epicurious.com, Foodnetwork.com
+# AllRecipes.com (ar), Epicurious.com (epi), Foodnetwork.com (fn)
 
 ingredients_files = [f"data/recipe-box/recipes_raw_nosource_{src}.json"
                      for src in ["ar", "epi", "fn"]]
 
-output_file = f"data/ingredients_list.pickle"
-output_file_test = f"data/ingredients_list_test.pickle"
+# Output files to store cleaned data
+output_ingredients_file = f"data/ingredients_list.pickle"
+output_recipes_file = f"data/recipes_list.json"
 
 nltk.download('stopwords')
 
@@ -175,39 +177,47 @@ def filter_ingredient(ingredient, stop_ingredient_words, test=False):
     return final_ing.strip() if nb_words < 4 else ""
 
 
-def process_recipe_box_ingredients():
+def parse_recipe_ingredients():
     stop_ingredient_words = measures + \
                             [f"{m}s" for m in measures] + \
                             prep_details + \
                             list(nltk.corpus.stopwords.words('english'))
     ingredients = Counter()
-    for ingredients_file in ingredients_files:
+    cleaned_recipes = []
+    for ingredients_file in tqdm(ingredients_files):
         with open(ingredients_file) as f:
             recipes = json.load(f)
 
-            for recipe in recipes.values():
+            for recipe in tqdm(recipes.values()):
 
                 if not recipe:
                     continue
 
+                cleaned_ingredients = []
                 for recipe_ing in recipe['ingredients']:
                     ing = filter_ingredient(recipe_ing,
                                             stop_ingredient_words)
                     if ing:
                         ingredients.update([ing])
+                        cleaned_ingredients.append(ing)
 
-    ingredients_list = [x[0] for x in ingredients.most_common(950)]
+                cleaned_recipes.append(dict(title=recipe['title'],
+                                            ingredients=cleaned_ingredients))
 
-    io_ops.save_obj(ingredients_list, output_file)
+    with open(output_recipes_file, 'w+') as recipe_fp:
+        json.dump(cleaned_recipes, recipe_fp)
+
+    ingredients_list = [x[0] for x in ingredients.most_common(1000)]
+    io_ops.save_obj(ingredients_list, output_ingredients_file)
 
     return ingredients_list
 
 
 def get_ingredients_list():
-    return io_ops.load_obj(output_file) or process_recipe_box_ingredients()
+    return io_ops.load_obj(output_ingredients_file) or parse_recipe_ingredients()
 
 
 if __name__ == '__main__':
     test = not True
-    l = process_recipe_box_ingredients()
+    l = parse_recipe_ingredients()  # recompile parsing
     print(get_ingredients_list()[:10])

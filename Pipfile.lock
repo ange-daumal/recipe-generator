@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "4b20842e0b3b41ddd25421537577416d0b3207905118a49777c3b1851b83c214"
+            "sha256": "1356f1af0458bf892fce4d439516e57744c4e0764c9f541264dbbad644c3ded2"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -261,6 +261,7 @@
                 "sha256:4621f6823bab46a9cc33d48105753ccbea671b68bab2c50a9f0be23d4065cb5a",
                 "sha256:fe3d08dd00a526850568d542ff9de9bbc2a09a791da3c334f3213d8d0bbbca65"
             ],
+            "index": "pypi",
             "version": "==4.56.0"
         },
         "urllib3": {
@@ -277,7 +278,7 @@
                 "sha256:93aa393e9d6c54c5cd570ccadd8edad61ea0c4b9ea7a01409020c9aa019eb442",
                 "sha256:dd83cd4b5b460958838f6eb3000c660b1f9caf2a5b1de4264e941512f603258a"
             ],
-            "markers": "platform_system == 'Darwin'",
+            "markers": "sys_platform == 'darwin'",
             "version": "==0.1.2"
         },
         "argon2-cffi": {
