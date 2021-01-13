@@ -1,6 +1,6 @@
 import random
 
-from core import image_generation, parse_ingredients, cocktail_ingredients
+from core import image_generation, parse_ingredients, cocktail_ingredients, recipe_ingredients
 from drivers import fb_driver, unsplash_driver
 from utils import io_ops
 
@@ -22,13 +22,10 @@ cocktail_id = io_ops.get_env_var("cocktail_page_id")
 cocktail_access_token = io_ops.get_env_var("cocktail_access_token")
 
 
-def get_recipe_sample(k=3):
-    samples = random.sample(ingredients_list, k=k)
-    return samples
-
-
 def post_recipe_sample(k=3):
-    samples = random.sample(ingredients_list, k=k)
+    ingredient = recipe_ingredients.Ingredients()
+    samples = ingredient.get_good_combinations(1, 3)[0]
+
     message = ""
     for i in range(k):
         message += f"{ordinal(i + 1)} ingredient: {samples[i]}\n"
@@ -73,6 +70,5 @@ def post_cocktail_sample():
 
 
 if __name__ == '__main__':
-    samples = get_recipe_sample(k=40)
-    print(samples)
     #print(post_cocktail_sample())
+    print(post_recipe_sample())

@@ -1,6 +1,6 @@
 from core import parse_recipes, parse_ingredients
 import random
-
+import numpy as np
 
 class Ingredients:
 
@@ -25,11 +25,24 @@ class Ingredients:
         other_ings = random.sample(combinable_ingredients, set_length - 1)
         return [first_ing, *other_ings]
 
-    def get_best_combinations(self, top_n=100, set_length=3):
-        pass
+    def get_good_combinations(self, n=10, set_length=3):
+        first_ings = random.sample(self.ingredients, n)
+        combinations = []
+
+        for first_ing in first_ings:
+            current = [first_ing]
+            n_selected = set_length * 8
+            best_others_index = np.argsort(-self.df[first_ing])[:n_selected]
+            for i in random.sample(list(best_others_index), set_length - 1):
+                current.append(self.ingredients[i])
+
+            combinations.append(current)
+        return combinations
 
 
 if __name__ == '__main__':
+    from pprint import pprint
     ingredients = Ingredients()
-    x = ingredients.get_random_versus_combination(set_length=3)
-    print(x)
+    #x = ingredients.get_random_versus_combination(set_length=3)
+    x = ingredients.get_best_combinations()
+    pprint(x)
