@@ -1,6 +1,5 @@
-import random
-
-from core import image_generation, parse_ingredients, cocktail_ingredients, recipe_ingredients
+from core import image_generation, parse_ingredients, cocktail_ingredients, \
+    recipe_ingredients
 from drivers import fb_driver, unsplash_driver
 from utils import io_ops
 
@@ -42,7 +41,8 @@ def post_recipe_sample(k=3):
         return fb_driver.post_picture(recipe_access_token, post_text,
                                       recipe_newpic_file)
     else:
-        return fb_driver.post_text(page_id, recipe_access_token, post_text)
+        return fb_driver.post_text_http_request(page_id, recipe_access_token,
+                                                post_text)
 
 
 def post_cocktail_sample():
@@ -66,9 +66,45 @@ def post_cocktail_sample():
         return fb_driver.post_picture(cocktail_access_token, post_text,
                                       cocktail_newpic_file)
     else:
-        return fb_driver.post_text(page_id, cocktail_access_token, post_text)
+        return fb_driver.post_text_http_request(page_id, cocktail_access_token,
+                                                post_text)
+
+
+def post_recipe_versus():
+    """
+    # Emojis
+    Python Source Code come from https://www.fileformat.info/info/unicode/char
+
+    # Facebook Reactions
+    Facebook Reacts are of type enum {NONE, LIKE, LOVE, WOW, HAHA, SORRY, ANGRY}
+    Care reactions are counted as Like reactions (ref https://developers.facebook.com/docs/graph-api/reference/v9.0/object/reactions)
+    """
+    emojis_pycode = dict(black_heart=u"\U0001F5A4",
+                         orange_heart=u"\U0001F9E1",
+                         open_mouth=u"\U0001F62E")
+
+    ingredient = recipe_ingredients.Ingredients()
+    samples = ingredient.get_random_versus_combination(set_length=2)
+    print(samples)
+    first_ing, second_ing, third_ing = [sample.capitalize() for sample in
+                                        samples]
+    i_versus = 1
+    post_text = f"VERSUS #{i_versus} over the {first_ing.upper()}.\r\n" \
+        "Which is the best duo?\r\n" \
+        f"{emojis_pycode['orange_heart']} LOVE REACT: " \
+        f"{first_ing} + {second_ing}\r\n" \
+        f"{emojis_pycode['open_mouth']} WOW REACT: " \
+        f"{first_ing} + {third_ing}\r\n" \
+        "Who will win?\r\n" \
+        "You have 48 hours to decide!"
+
+    print(post_text)
+
+    # success, picture_text = unsplash_driver.get_picture_by_keywords(first_ing, recipe_rawpic_file)
+    # fb_driver.post_text(recipe_access_token, post_text)
 
 
 if __name__ == '__main__':
-    #print(post_cocktail_sample())
-    print(post_recipe_sample())
+    # print(post_cocktail_sample())
+    # print(post_recipe_sample())
+    print(post_recipe_versus())

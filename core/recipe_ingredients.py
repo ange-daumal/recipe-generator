@@ -8,7 +8,6 @@ class Ingredients:
         self.ingredients = parse_ingredients.get_ingredients_list()
         df = parse_recipes.get_ingredients_df()
         df = parse_recipes.apply_log(df)
-        print(df.columns)
         self.df = df
 
     def get_combination_for(self, first_ing, threshold=0):
@@ -22,7 +21,7 @@ class Ingredients:
     def get_random_versus_combination(self, set_length=2):
         first_ing = self.ingredients[random.randint(0, len(self.ingredients))]
         combinable_ingredients = self.get_combination_for(first_ing)
-        other_ings = random.sample(combinable_ingredients, set_length - 1)
+        other_ings = random.sample(combinable_ingredients, set_length)
         return [first_ing, *other_ings]
 
     def get_good_combinations(self, n=10, set_length=3):

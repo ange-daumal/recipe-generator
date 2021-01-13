@@ -7,7 +7,6 @@ import requests
 from utils import io_ops
 
 
-
 def _get_page_access_token(response, page_id):
     for page in response["data"]:
         if page["id"] == page_id:
@@ -36,7 +35,7 @@ def get_page_access_token(user_id, user_access_token):
 
 # Post as a Page
 
-def post_text(page_id, page_access_token, message: str) -> str:
+def post_text_http_request(page_id, page_access_token, message: str):
     query = f"https://graph.facebook.com/{page_id}/feed" \
         f"?message={message}" \
         f"&fields=created_time,from,id,message,permalink_url" \
@@ -46,8 +45,16 @@ def post_text(page_id, page_access_token, message: str) -> str:
     return check_error(response, verbose=True)
 
 
-def post_picture(page_access_token, message: str,
-                 filepath: str) -> str:
+def post_text(page_access_token, message: str):
+    graph = facebook.GraphAPI(access_token=page_access_token)
+    response = graph.put_object(parent_object='me',
+                                connection_name='feed',
+                                message=message)
+
+    return check_error(response, verbose=True)
+
+
+def post_picture(page_access_token, message: str, filepath: str):
     graph = facebook.GraphAPI(access_token=page_access_token)
     response = graph.put_photo(image=open(filepath, 'rb'),
                                message=message)
@@ -59,4 +66,4 @@ if __name__ == '__main__':
     page_access_token = io_ops.get_env_var("page_access_token")
 
     message = "Hello, this is a test."
-    post_text(message)
+    post_text_http_request(message)
