@@ -1,6 +1,6 @@
 from core import image_generation, recipe_ingredients
 from parse import cocktail_ingredients, parse_ingredients
-from drivers import fb_driver, unsplash_driver
+from drivers import fb_driver, unsplash_driver, pexels_driver
 from utils import io_ops, data_paths
 
 ingredients_list = parse_ingredients.get_ingredients_list()
@@ -94,14 +94,14 @@ def post_recipe_versus():
         "Who will win?\r\n" \
         "You have 48 hours to decide!\r\n"
 
-    success, picture_1_text = unsplash_driver.get_picture_by_keywords(
+    success, picture_1_text = pexels_driver.get_picture_by_keywords(
         second_ing, data_paths.versus1_img)
 
     if not success:
         print("Did not find picture for", second_ing)
         return post_recipe_versus()
 
-    success, picture_2_text = unsplash_driver.get_picture_by_keywords(
+    success, picture_2_text = pexels_driver.get_picture_by_keywords(
         third_ing, data_paths.versus2_img)
 
     if not success:
@@ -120,7 +120,8 @@ def post_recipe_versus():
 
     # Post, get post id
     print(post_text)
-    response = fb_driver.post_picture(recipe_access_token, post_text, data_paths.recipe_newpic_file)
+    response = fb_driver.post_picture(recipe_access_token, post_text,
+                                      data_paths.recipe_newpic_file)
 
     # Store all infos
     ingredient.add_to_pending(response['post_id'], *samples)

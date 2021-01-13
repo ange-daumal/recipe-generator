@@ -3,7 +3,8 @@ ingredients_files = [f"data/recipe-box/recipes_raw_nosource_{src}.json"
                      for src in ["ar", "epi", "fn"]]
 
 reacts_fp = ["data/storage/heart_react.png", "data/storage/wow_react.png"]
-options_reacts_fp = ["data/storage/like_react.png", "data/storage/sad_react.png"]
+options_reacts_fp = ["data/storage/like_react.png",
+                     "data/storage/haha_react.png"]
 
 # Cleaned input data
 output_ingredients_file = f"data/storage/ingredients_list.pickle"
