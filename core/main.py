@@ -2,12 +2,8 @@ from core import image_generation, recipe_ingredients
 from parse import cocktail_ingredients, parse_ingredients
 from drivers import fb_driver, unsplash_driver
 from utils import io_ops
-
-recipe_rawpic_file = "data/recipe_raw.jpg"
-recipe_newpic_file = "data/recipe_new.jpg"
-
-cocktail_rawpic_file = "data/cocktail_raw.jpg"
-cocktail_newpic_file = "data/cocktail_new.jpg"
+from utils.data_paths import recipe_rawpic_file, recipe_newpic_file, \
+    cocktail_rawpic_file, cocktail_newpic_file
 
 ingredients_list = parse_ingredients.get_ingredients_list()
 
@@ -99,9 +95,6 @@ def post_recipe_versus():
         "You have 48 hours to decide!"
 
     print(post_text)
-
-    # success, picture_text = unsplash_driver.get_picture_by_keywords(first_ing, recipe_rawpic_file)
-    # fb_driver.post_text(recipe_access_token, post_text)
 
 
 if __name__ == '__main__':

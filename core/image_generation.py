@@ -2,6 +2,8 @@ from typing import List
 
 from PIL import Image, ImageFont, ImageDraw, ImageFilter, ImageChops
 
+from utils.data_paths import reacts_fp, options_reacts_fp
+
 
 def get_pos(width: int, height: int, k: int):
     pos = [
@@ -142,7 +144,6 @@ def _add_react_image(img, react_img, resize=(300, 300), where: str ='middle',
 
 
 def _generate_versus_images(images_fp, samples_text):
-    reacts_fp = ["data/heart_react.png", "data/wow_react.png"]
     react_images = [Image.open(img) for img in reacts_fp]
     images = [Image.open(img) for img in images_fp]
 
@@ -175,7 +176,6 @@ def _join_images(images):
 
 def versus_label(raw_picture_files: List[str], samples: List[str],
                  new_picture_file) -> None:
-    options_reacts_fp = ["data/like_react.png", "data/sad_react.png"]
     options_reacts = [Image.open(img) for img in options_reacts_fp]
     options_texts = ["I don't know", "Neither of them"]
     options_offsets = [0, 80]
@@ -197,7 +197,7 @@ if __name__ == '__main__':
     samples = ["What's tastier?\r\nChocolate with...", "coffee", "sugar"]
 
     # raw_picture_file = "data/tmp_raw.jpg"
-    new_picture_file = "data/tmp_new.jpg"
+    new_picture_file = "data/tmp/tmp_new.jpg"
 
     versus1_img = "data/versus1_raw.jpg"
     versus2_img = "data/versus2_raw.jpg"

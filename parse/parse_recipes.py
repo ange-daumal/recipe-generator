@@ -1,11 +1,13 @@
-import pandas as pd
-import numpy as np
-from parse import parse_ingredients
-import json
 import itertools
+import json
+
+import numpy as np
+import pandas as pd
 from tqdm import tqdm
 
-output_csv = "data/ingredients_combinations.csv"
+import utils.data_paths
+from parse import parse_ingredients
+from utils.data_paths import ingredients_combinations_csv
 
 
 def _get_ingredients_in_dict(ingredients, ingredients_index):
@@ -39,7 +41,7 @@ def parse_recipes(ingredients_list):
     ingredients_index = dict(
         zip(ingredients_list, np.arange(len(ingredients_list))))
 
-    recipes_file = parse_ingredients.output_recipes_file
+    recipes_file = utils.data_paths.output_recipes_file
     with open(recipes_file, 'r') as recipes_fp:
         recipes = json.load(recipes_fp)
 
@@ -54,13 +56,13 @@ def parse_recipes(ingredients_list):
             df[ing1][index_ing2] += 1
             df[ing2][index_ing1] += 1
 
-    df.to_csv(output_csv)
+    df.to_csv(ingredients_combinations_csv)
     return df
 
 
 def get_ingredients_df():
     try:
-        df = pd.read_csv(output_csv)
+        df = pd.read_csv(ingredients_combinations_csv)
         df = _rm_unnamed(df)
         return df
     except FileNotFoundError:

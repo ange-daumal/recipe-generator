@@ -4,6 +4,9 @@ import sys
 import unicodedata
 
 import nltk
+
+from utils.data_paths import ingredients_files, output_ingredients_file, \
+    output_recipes_file
 from utils import io_ops
 from collections import Counter
 from tqdm import tqdm
@@ -11,12 +14,7 @@ from tqdm import tqdm
 # Get recipes from multiple sources ;
 # AllRecipes.com (ar), Epicurious.com (epi), Foodnetwork.com (fn)
 
-ingredients_files = [f"data/recipe-box/recipes_raw_nosource_{src}.json"
-                     for src in ["ar", "epi", "fn"]]
-
 # Output files to store cleaned data
-output_ingredients_file = f"data/ingredients_list.pickle"
-output_recipes_file = f"data/recipes_list.json"
 
 
 trademarks = ["®", "hellmann", "sargento", "soy vay", "bertolli", "bacardi",
@@ -215,7 +213,8 @@ def parse_recipe_ingredients():
 
 
 def get_ingredients_list():
-    return io_ops.load_obj(output_ingredients_file) or parse_recipe_ingredients()
+    return io_ops.load_obj(
+        output_ingredients_file) or parse_recipe_ingredients()
 
 
 if __name__ == '__main__':
