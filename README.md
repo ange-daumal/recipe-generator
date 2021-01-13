@@ -15,6 +15,13 @@ Another way is to directly use a Page Access Token. On this project, there is tw
 * `recipe_access_token` for the first page,
 * `cocktail_access_token` for the second one.
 
+
+# Developers
+
+## Data required
+* Get Ryan Lee's [Recipe Box](https://github.com/rtlee9/recipe-box) dataset
+* Unzip the folder `recipe-box` in `data/` folder.
+
 ## Running instructions 
 * Get pipenv using `python3 -m pip install pipenv`
 * Install dependencies using `python3 -m pipenv install`

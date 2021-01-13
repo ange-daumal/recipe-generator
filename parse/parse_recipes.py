@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from core import parse_ingredients
+from parse import parse_ingredients
 import json
 import itertools
 from tqdm import tqdm

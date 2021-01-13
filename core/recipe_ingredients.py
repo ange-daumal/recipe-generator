@@ -1,4 +1,4 @@
-from core import parse_recipes, parse_ingredients
+from parse import parse_recipes, parse_ingredients
 import random
 import numpy as np
 

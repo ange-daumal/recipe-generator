@@ -57,6 +57,13 @@ def draw_shadowed_text(img, position, text, font,
     return img.convert("RGB")
 
 
+def draw_centered_text(draw, img, position, text, font):
+    w, _ = draw.multiline_textsize(text, font=font)
+    new_loc = (position[0] - w / 2, position[1])
+    img = draw_shadowed_text(img, new_loc, text, font)
+    return img
+
+
 def label(raw_picture_file: str, samples: List[str], new_picture_file) -> None:
     img = Image.open(raw_picture_file)
 
@@ -66,23 +73,104 @@ def label(raw_picture_file: str, samples: List[str], new_picture_file) -> None:
 
     # Prepare text drawing
     draw = ImageDraw.Draw(img)
-    font = ImageFont.truetype("fonts/Inconsolata-Bold.ttf",
-                              size=60)
+    font = ImageFont.truetype("fonts/Inconsolata-Bold.ttf", size=60)
 
     # Display each sample
     for i, sample in enumerate(samples):
         loc = text_positions[i]
         text = sample.replace(" ", "\n")
         # Get textsize to offset the text in the middle on the image
-        w, _ = draw.multiline_textsize(text, font=font)
-        new_loc = (loc[0] - w / 2, loc[1])
-        img = draw_shadowed_text(img, new_loc, text, font)
+        img = draw_centered_text(draw, img, loc, text, font)
 
     img.save(new_picture_file)
 
 
+def _add_middle_text(img, text, height_offset=0, size=60):
+    width, height = img.size
+    draw = ImageDraw.Draw(img)
+    font = ImageFont.truetype("fonts/Inconsolata-Bold.ttf", size=size)
+
+    loc = [int(width / 2), int(2 * height / 30 + height_offset)]
+    img = draw_centered_text(draw, img, loc, text, font)
+    return img
+
+
+def _crop_middle(img):
+    width, height = img.size
+    margin = width // 4
+    # crop_rectangle is a 4-tuple (left, upper, right, lower)
+    crop_rectangle = (margin, 0, width - margin, height)
+    img = img.crop(crop_rectangle)
+    return img
+
+
+def _add_react_image(img, react_img):
+    width, height = img.size
+    react_img = react_img.resize((300, 300))
+    react_wight, react_height = react_img.size
+
+    loc = [int(width // 2 - react_wight // 2), int(2 * height / 30 + 130)]
+
+    react_img = react_img.convert("RGBA")
+    react_img_transparent = Image.new("RGBA", img.size)
+    react_img_transparent.paste(react_img, loc, react_img.convert('RGBA'))
+
+    output = Image.new("RGBA", img.size)
+    output = Image.alpha_composite(output, img.convert('RGBA'))
+    output = Image.alpha_composite(output, react_img_transparent)
+
+    return output
+
+
+def _generate_versus_images(images_fp, samples_text):
+    reacts_fp = ["data/heart_react.png", "data/wow_react.png"]
+    react_images = [Image.open(img) for img in reacts_fp]
+    images = [Image.open(img) for img in images_fp]
+
+    for i, text in zip(range(len(images)), samples_text):
+        img = images[i]
+        width, height = img.size
+
+        # Add react emojis
+        img = _add_react_image(img, react_images[i])
+
+        img = _add_middle_text(img, text, height_offset=70, size=45)
+        img = _crop_middle(img)
+
+        images[i] = img
+
+    return images
+
+
+def _join_images(images):
+    widths, heights = zip(*(i.size for i in images))
+    total_width = sum(widths)
+    max_height = max(heights)
+
+    # Join images
+    img_out = Image.new('RGB', (total_width, max_height))
+
+    x_offset = 0
+    for img in images:
+        img_out.paste(img, (x_offset, 0))
+        x_offset += img.size[0]
+
+    return img_out
+
+
+def versus_label(raw_picture_files: List[str], samples: List[str],
+                 new_picture_file) -> None:
+    images = _generate_versus_images(raw_picture_files, samples[1:])
+    img_out = _join_images(images)
+    img_out = _add_middle_text(img_out, samples[0])
+    img_out.save(new_picture_file)
+
+
 if __name__ == '__main__':
-    samples = ["Cognac", 'Mutton', "Refrigerated Chocolate Chip Cookie Dough"]
-    raw_picture_file = "data/tmp_raw.jpg"
+    samples = ["Arrowroot", "with salt", "with pepper"]
+    # raw_picture_file = "data/tmp_raw.jpg"
     new_picture_file = "data/tmp_new.jpg"
-    label(raw_picture_file, samples, new_picture_file)
+
+    versus1_img = "data/versus1_raw.jpg"
+    versus2_img = "data/versus2_raw.jpg"
+    versus_label([versus1_img, versus2_img], samples, new_picture_file)

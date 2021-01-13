@@ -1,5 +1,5 @@
-from core import image_generation, parse_ingredients, cocktail_ingredients, \
-    recipe_ingredients
+from core import image_generation, recipe_ingredients
+from parse import cocktail_ingredients, parse_ingredients
 from drivers import fb_driver, unsplash_driver
 from utils import io_ops
 
