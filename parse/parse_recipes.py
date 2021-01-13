@@ -21,7 +21,7 @@ def _get_ingredients_in_dict(ingredients, ingredients_index):
     return ingredients_in_dict
 
 
-def _rm_unnamed(df):
+def rm_unnamed(df):
     if 'Unnamed: 0' in df.columns:
         df = df.drop('Unnamed: 0', axis=1)
     return df
@@ -31,7 +31,7 @@ def apply_log(df):
     df = df.apply(np.log2)
     for col in df.columns:
         df[col][df[col] == -np.inf] = 0
-    df = _rm_unnamed(df)
+    df = rm_unnamed(df)
     return df
 
 
@@ -56,14 +56,14 @@ def parse_recipes(ingredients_list):
             df[ing1][index_ing2] += 1
             df[ing2][index_ing1] += 1
 
-    df.to_csv(ingredients_combinations_csv)
+    df.to_csv(ingredients_combinations_csv, index=False)
     return df
 
 
 def get_ingredients_df():
     try:
         df = pd.read_csv(ingredients_combinations_csv)
-        df = _rm_unnamed(df)
+        df = rm_unnamed(df)
         return df
     except FileNotFoundError:
         all_ingredients = parse_ingredients.get_ingredients_list()

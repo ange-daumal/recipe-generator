@@ -1,9 +1,7 @@
 from core import image_generation, recipe_ingredients
 from parse import cocktail_ingredients, parse_ingredients
 from drivers import fb_driver, unsplash_driver
-from utils import io_ops
-from utils.data_paths import recipe_rawpic_file, recipe_newpic_file, \
-    cocktail_rawpic_file, cocktail_newpic_file
+from utils import io_ops, data_paths
 
 ingredients_list = parse_ingredients.get_ingredients_list()
 
@@ -27,15 +25,16 @@ def post_recipe_sample(k=3):
 
     keywords = " ".join(samples)
     success, picture_text = unsplash_driver.get_picture_by_keywords(keywords,
-                                                                    recipe_rawpic_file)
+                                                                    data_paths.recipe_rawpic_file)
 
-    post_text = f"{message}\n{picture_text}"
+    post_text = f"{message}\nPicture {picture_text}"
     print(post_text)
 
     if success:
-        image_generation.label(recipe_rawpic_file, samples, recipe_newpic_file)
+        image_generation.label(data_paths.recipe_rawpic_file, samples,
+                               data_paths.recipe_newpic_file)
         return fb_driver.post_picture(recipe_access_token, post_text,
-                                      recipe_newpic_file)
+                                      data_paths.recipe_newpic_file)
     else:
         return fb_driver.post_text_http_request(page_id, recipe_access_token,
                                                 post_text)
@@ -49,18 +48,18 @@ def post_cocktail_sample():
 
     keywords = ' '.join(flatten(sample))
     success, picture_text = unsplash_driver.get_picture_by_keywords(keywords,
-                                                                    cocktail_rawpic_file)
-    post_text = f"{message}\n{picture_text}"
+                                                                    data_paths.cocktail_rawpic_file)
+    post_text = f"{message}\nPicture {picture_text}"
     print(post_text)
 
     if success:
-        image_generation.label(cocktail_rawpic_file,
+        image_generation.label(data_paths.cocktail_rawpic_file,
                                list(map(lambda s: s.capitalize(),
                                         flatten(sample)[:3])),
-                               cocktail_newpic_file)
+                               data_paths.cocktail_newpic_file)
 
         return fb_driver.post_picture(cocktail_access_token, post_text,
-                                      cocktail_newpic_file)
+                                      data_paths.cocktail_newpic_file)
     else:
         return fb_driver.post_text_http_request(page_id, cocktail_access_token,
                                                 post_text)
@@ -84,6 +83,7 @@ def post_recipe_versus():
     print(samples)
     first_ing, second_ing, third_ing = [sample.capitalize() for sample in
                                         samples]
+    # TODO: Update i_versus
     i_versus = 1
     post_text = f"VERSUS #{i_versus} over the {first_ing.upper()}.\r\n" \
         "Which is the best duo?\r\n" \
@@ -92,9 +92,38 @@ def post_recipe_versus():
         f"{emojis_pycode['open_mouth']} WOW REACT: " \
         f"{first_ing} + {third_ing}\r\n" \
         "Who will win?\r\n" \
-        "You have 48 hours to decide!"
+        "You have 48 hours to decide!\r\n"
 
+    success, picture_1_text = unsplash_driver.get_picture_by_keywords(
+        second_ing, data_paths.versus1_img)
+
+    if not success:
+        print("Did not find picture for", second_ing)
+        return post_recipe_versus()
+
+    success, picture_2_text = unsplash_driver.get_picture_by_keywords(
+        third_ing, data_paths.versus2_img)
+
+    if not success:
+        print("Did not find picture for", third_ing)
+        return post_recipe_versus()
+
+    post_text += f"Picture of {second_ing} {picture_1_text}\r\n"
+    post_text += f"Picture of {third_ing} {picture_2_text}"
+
+    # Use versus generator image
+    img_text = [f"What's tastier?\r\n{first_ing} with...",
+                second_ing, third_ing]
+    image_generation.versus_label([data_paths.versus1_img,
+                                   data_paths.versus2_img],
+                                  img_text, data_paths.recipe_newpic_file)
+
+    # Post, get post id
     print(post_text)
+    response = fb_driver.post_picture(recipe_access_token, post_text, data_paths.recipe_newpic_file)
+
+    # Store all infos
+    ingredient.add_to_pending(response['post_id'], *samples)
 
 
 if __name__ == '__main__':

@@ -13,9 +13,15 @@ output_recipes_file = f"data/storage/recipes_list.json"
 ingredients_combinations_csv = "data/storage/ingredients_combinations.csv"
 ingredients_matrix = "data/storage/ingredients_matrix.csv"
 
+# Handling of versus polls
+versus_pending = "data/storage/versus_pending.csv"
+versus_history = "data/storage/versus_history.csv"
+
 # Computed images
 recipe_rawpic_file = "data/tmp/recipe_raw.jpg"
 recipe_newpic_file = "data/tmp/recipe_new.jpg"
 cocktail_rawpic_file = "data/tmp/cocktail_raw.jpg"
 cocktail_newpic_file = "data/tmp/cocktail_new.jpg"
+versus1_img = "data/tmp/versus1_raw.jpg"
+versus2_img = "data/tmp/versus2_raw.jpg"
 

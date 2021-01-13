@@ -18,8 +18,10 @@ headers = {
 }
 
 
-def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 20,
-                            orientation: str = "squarish", page: int = 1, max_try: int =5) -> Tuple[bool, str]:
+def get_picture_by_keywords(keywords: str, image_filepath: str,
+                            per_page: int = 20, orientation: str = "squarish",
+                            page: int = 1,
+                            max_try: int = 5) -> Tuple[bool, str]:
     if page == max_try:
         return False, ""
 
@@ -41,7 +43,9 @@ def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 
     containing_keywords = [x for x in response["results"] if x["alt_description"] and
                            any(y in x["alt_description"].lower().split(" ") for y in keywords.lower().split(" "))]
     if not containing_keywords:
-        return get_picture_by_keywords(keywords, image_filepath, per_page=per_page, orientation=orientation,
+        return get_picture_by_keywords(keywords, image_filepath,
+                                       per_page=per_page,
+                                       orientation=orientation,
                                        page=page + 1)
 
     picture_data = random.choice(containing_keywords)
@@ -51,16 +55,12 @@ def get_picture_by_keywords(keywords: str, image_filepath: str, per_page: int = 
     portfolio_url = picture_data["user"]["portfolio_url"]
     alt_description = picture_data["alt_description"]
 
-    text = ""
+    text = f"from {author}"
     if alt_description:
-        text += f'Picture: "{alt_description.capitalize()}", '
-    else:
-        text += "Picture "
-
-    text += f"by {author}."
+        text += f', "{alt_description.capitalize()}"'
 
     if portfolio_url:
-        text += f' Find their portofolio here: {portfolio_url}'
+        text += f'. Find their portofolio here: {portfolio_url}'
 
     # Download picture
     response = requests.get(picture_url, stream=True)
