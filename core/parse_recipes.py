@@ -6,19 +6,9 @@ import itertools
 from tqdm import tqdm
 
 output_csv = "data/ingredients_combinations.csv"
-recipes_file = parse_ingredients.output_recipes_file
-
-all_ingredients = parse_ingredients.get_ingredients_list()
-
-df = pd.DataFrame(0, index=np.arange(len(all_ingredients)),
-                  columns=all_ingredients)
-ingredients_index = dict(zip(all_ingredients, np.arange(len(all_ingredients))))
-
-with open(recipes_file, 'r') as recipes_fp:
-    recipes = json.load(recipes_fp)
 
 
-def get_ingredients_in_dict(ingredients):
+def _get_ingredients_in_dict(ingredients, ingredients_index):
     ingredients_in_dict = []
     for ingredient in ingredients:
         try:
@@ -29,7 +19,7 @@ def get_ingredients_in_dict(ingredients):
     return ingredients_in_dict
 
 
-def rm_unnamed(df):
+def _rm_unnamed(df):
     if 'Unnamed: 0' in df.columns:
         df = df.drop('Unnamed: 0', axis=1)
     return df
@@ -39,13 +29,23 @@ def apply_log(df):
     df = df.apply(np.log2)
     for col in df.columns:
         df[col][df[col] == -np.inf] = 0
-    df = rm_unnamed(df)
+    df = _rm_unnamed(df)
     return df
 
 
-def parse_recipes():
+def parse_recipes(ingredients_list):
+    df = pd.DataFrame(0, index=np.arange(len(ingredients_list)),
+                         columns=ingredients_list)
+    ingredients_index = dict(
+        zip(ingredients_list, np.arange(len(ingredients_list))))
+
+    recipes_file = parse_ingredients.output_recipes_file
+    with open(recipes_file, 'r') as recipes_fp:
+        recipes = json.load(recipes_fp)
+
     for recipe in tqdm(recipes):
-        ingredients_in_dict = get_ingredients_in_dict(recipe['ingredients'])
+        ingredients_in_dict = _get_ingredients_in_dict(recipe['ingredients'],
+                                                       ingredients_index)
 
         combinations = itertools.combinations(ingredients_in_dict, 2)
         for ing1, ing2 in combinations:
@@ -61,10 +61,11 @@ def parse_recipes():
 def get_ingredients_df():
     try:
         df = pd.read_csv(output_csv)
-        rm_unnamed(df)
+        df = _rm_unnamed(df)
         return df
     except FileNotFoundError:
-        return parse_recipes()
+        all_ingredients = parse_ingredients.get_ingredients_list()
+        return parse_recipes(all_ingredients)
 
 
 if __name__ == '__main__':

@@ -18,7 +18,6 @@ ingredients_files = [f"data/recipe-box/recipes_raw_nosource_{src}.json"
 output_ingredients_file = f"data/ingredients_list.pickle"
 output_recipes_file = f"data/recipes_list.json"
 
-nltk.download('stopwords')
 
 trademarks = ["®", "hellmann", "sargento", "soy vay", "bertolli", "bacardi",
               "heinz", "gold medal", "spam", "wish bone", 'sugarcraft']
@@ -110,7 +109,7 @@ prep_details = [
     # type of foods
     'heavy', 'long', 'gluten', 'free', 'fully', 'smoked',
     # countrys
-    'english', 'asian', 'bulgarian', 'spanish',
+    'english', 'asian', 'bulgarian', 'spanish', 'thai',
     # brands
     'myers', 'aarti',
 
@@ -178,6 +177,8 @@ def filter_ingredient(ingredient, stop_ingredient_words, test=False):
 
 
 def parse_recipe_ingredients():
+    nltk.download('stopwords')
+
     stop_ingredient_words = measures + \
                             [f"{m}s" for m in measures] + \
                             prep_details + \
