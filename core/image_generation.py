@@ -85,12 +85,14 @@ def label(raw_picture_file: str, samples: List[str], new_picture_file) -> None:
     img.save(new_picture_file)
 
 
-def _add_middle_text(img, text, height_offset=0, size=60):
+def _draw_text(img, text, height_offset=0, size=60, loc=None):
     width, height = img.size
     draw = ImageDraw.Draw(img)
     font = ImageFont.truetype("fonts/Inconsolata-Bold.ttf", size=size)
 
-    loc = [int(width / 2), int(2 * height / 30 + height_offset)]
+    if not loc:
+        loc = [int(width / 2), int(2 * height / 30 + height_offset)]
+
     img = draw_centered_text(draw, img, loc, text, font)
     return img
 
@@ -104,12 +106,25 @@ def _crop_middle(img):
     return img
 
 
-def _add_react_image(img, react_img):
+def _add_react_image(img, react_img, resize=(300, 300), where: str ='middle',
+                     height_offset: int = 170, text: str = ""):
     width, height = img.size
-    react_img = react_img.resize((300, 300))
-    react_wight, react_height = react_img.size
+    react_img = react_img.resize(resize)
+    react_width, react_height = react_img.size
 
-    loc = [int(width // 2 - react_wight // 2), int(2 * height / 30 + 130)]
+    width_offset = -react_width * 2.7
+
+    if where == 'middle':
+        loc = [int(width // 2 - react_width // 2),
+               int(2 * height / 30 + height_offset)]
+    elif where == 'bottom':
+        text_loc = [int(width // 2 - react_width // 2 + 40),
+                    int(7 * height // 9 + height_offset + 15)]
+        loc = [int(width // 2 - react_width // 2 + width_offset),
+               int(7 * height // 9 + height_offset)]
+    else:
+        raise Exception(f"Does not recognize value '{where}' for "
+                        "`where` keyword argument")
 
     react_img = react_img.convert("RGBA")
     react_img_transparent = Image.new("RGBA", img.size)
@@ -118,6 +133,10 @@ def _add_react_image(img, react_img):
     output = Image.new("RGBA", img.size)
     output = Image.alpha_composite(output, img.convert('RGBA'))
     output = Image.alpha_composite(output, react_img_transparent)
+
+    if text:
+        output = _draw_text(output, text, size=40, loc=text_loc)
+
 
     return output
 
@@ -129,12 +148,8 @@ def _generate_versus_images(images_fp, samples_text):
 
     for i, text in zip(range(len(images)), samples_text):
         img = images[i]
-        width, height = img.size
-
-        # Add react emojis
-        img = _add_react_image(img, react_images[i])
-
-        img = _add_middle_text(img, text, height_offset=70, size=45)
+        img = _add_react_image(img, react_images[i], where='middle')
+        img = _draw_text(img, text, height_offset=120, size=45)
         img = _crop_middle(img)
 
         images[i] = img
@@ -160,14 +175,27 @@ def _join_images(images):
 
 def versus_label(raw_picture_files: List[str], samples: List[str],
                  new_picture_file) -> None:
+    options_reacts_fp = ["data/like_react.png", "data/sad_react.png"]
+    options_reacts = [Image.open(img) for img in options_reacts_fp]
+    options_texts = ["I don't know", "Neither of them"]
+    options_offsets = [0, 80]
+
     images = _generate_versus_images(raw_picture_files, samples[1:])
     img_out = _join_images(images)
-    img_out = _add_middle_text(img_out, samples[0])
+    img_out = _draw_text(img_out, samples[0], height_offset=-20)
+
+    for react, text, offset in zip(options_reacts, options_texts, options_offsets):
+        img_out = _add_react_image(img_out, react, resize=(70, 70),
+                                   where='bottom', height_offset=offset,
+                                   text=text)
+
+    img_out = img_out.convert('RGB')
     img_out.save(new_picture_file)
 
 
 if __name__ == '__main__':
-    samples = ["Arrowroot", "with salt", "with pepper"]
+    samples = ["What's tastier?\r\nChocolate with...", "coffee", "sugar"]
+
     # raw_picture_file = "data/tmp_raw.jpg"
     new_picture_file = "data/tmp_new.jpg"
 
