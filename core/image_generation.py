@@ -31,7 +31,7 @@ def my_halo_filter() -> ImageFilter:
               2, 4, 8, 4, 1,
               1, 2, 4, 2, 1,
               0, 1, 2, 1, 0]
-    return ImageFilter.Kernel((5, 5), kernel, scale=0.2 * sum(kernel))
+    return ImageFilter.Kernel((5, 5), kernel, scale=0.1 * sum(kernel))
 
 
 def draw_shadowed_text(img, position, text, font,
@@ -101,6 +101,10 @@ def _draw_text(img, text, height_offset=0, size=60, loc=None):
 
 def _crop_middle(img):
     width, height = img.size
+
+    if height > width and height / width > 1.2:
+        return img
+
     margin = width // 4
     # crop_rectangle is a 4-tuple (left, upper, right, lower)
     crop_rectangle = (margin, 0, width - margin, height)
@@ -131,20 +135,20 @@ def _add_react_image(img, react_img, resize=(300, 300), where: str = 'middle',
     width_offset = -react_width * 2.7
 
     if where == 'middle':
-        loc = [int(width // 2 - react_width // 2),
-               int(2 * height / 30 + height_offset)]
+        img_loc = [int(width // 2 - react_width // 2),
+                   int(2 * height / 30 + height_offset)]
     elif where == 'bottom':
         text_loc = [int(width // 2 - react_width // 2 + 40),
                     int(7 * height // 9 + height_offset + 15)]
-        loc = [int(width // 2 - react_width // 2 + width_offset),
-               int(7 * height // 9 + height_offset)]
+        img_loc = [int(width // 2 - react_width // 2 + width_offset),
+                   int(7 * height // 9 + height_offset)]
     else:
         raise Exception(f"Does not recognize value '{where}' for "
                         "`where` keyword argument")
 
     react_img = react_img.convert("RGBA")
     react_img_transparent = Image.new("RGBA", img.size)
-    react_img_transparent.paste(react_img, loc, react_img.convert('RGBA'))
+    react_img_transparent.paste(react_img, img_loc, react_img.convert('RGBA'))
 
     output = Image.new("RGBA", img.size)
     output = Image.alpha_composite(output, img.convert('RGBA'))
@@ -162,7 +166,7 @@ def _generate_versus_images(images_fp, samples_text):
 
     for i, text in zip(range(len(images)), samples_text):
         img = images[i]
-        img = _crop_squarish(img)
+        #img = _crop_squarish(img)
         img = _add_react_image(img, react_images[i], where='middle')
         img = _draw_text(img, text, height_offset=120, size=45)
         img = _crop_middle(img)
@@ -188,6 +192,21 @@ def _join_images(images):
     return img_out
 
 
+def _draw_options_box(img):
+    width, height = img.size
+    rectangle = [(width // 2 - 250, 6.8 * height // 9),
+                 (width // 2 + 200, 8.48 * height // 9)]
+    color = (0, 0, 0)
+
+    overlay = Image.new('RGBA', img.size, color + (0,))
+    draw = ImageDraw.Draw(overlay)
+    draw.rectangle(rectangle, fill=color + (int(255 * .7),), outline="white")
+
+    img = Image.alpha_composite(img.convert("RGBA"), overlay)
+    return img
+
+
+
 def versus_label(raw_picture_files: List[str], samples: List[str],
                  new_picture_file) -> None:
     options_reacts = [Image.open(img) for img in options_reacts_fp]
@@ -198,9 +217,12 @@ def versus_label(raw_picture_files: List[str], samples: List[str],
     img_out = _join_images(images)
     img_out = _draw_text(img_out, samples[0], height_offset=-20)
 
+    react_size = 70
+    img_out = _draw_options_box(img_out)
     for react, text, offset in zip(options_reacts, options_texts,
                                    options_offsets):
-        img_out = _add_react_image(img_out, react, resize=(70, 70),
+        img_out = _add_react_image(img_out, react,
+                                   resize=(react_size, react_size),
                                    where='bottom', height_offset=offset,
                                    text=text)
 
