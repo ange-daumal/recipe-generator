@@ -48,6 +48,14 @@ class FbDriver:
         response = json.loads(requests.get(query).text)
         return self.check_error(response, verbose=True)
 
+    def post_comment(self, post_id, comment):
+        query = f"https://graph.facebook.com/{post_id}/comments" \
+            f"?access_token={self.page_access_token}"
+        payload = dict(message=comment)
+
+        response = json.loads(requests.post(query, params=payload).text)
+        return self.check_error(response, verbose=True)
+
     def post_text_http_request(self, page_id, message: str):
         query = f"https://graph.facebook.com/{page_id}/feed" \
             f"?message={message}" \
@@ -76,4 +84,6 @@ if __name__ == '__main__':
     page_id = io_ops.get_env_var("page_id")
     fb = FbDriver()
     post_id = '113704106942055_238997857746012'
-    print(fb.get_post_reactions(post_id))
+    #print(fb.get_post_reactions(post_id))
+    x = fb.post_comment(post_id, "this is a test comment.")
+    print(x)

@@ -2,7 +2,7 @@ from parse import parse_recipes, parse_ingredients
 import random
 import numpy as np
 import pandas as pd
-from utils import filepaths, io_ops
+from utils import filepaths, io_ops, emojis
 import datetime
 
 from drivers.fb_driver import FbDriver
@@ -92,15 +92,35 @@ class Ingredients:
         haha = reactions_count['HAHA']
         total_points = love + wow + haha
 
+        comment = "This versus has ended!\r\n"
         if total_points > 0:
             second_ing_score = love / total_points
             third_ing_score = wow / total_points
+
+            if round(second_ing_score, 1) == round(third_ing_score, 1):
+                comment = "It was tight: both foods had the same popularity!" \
+                          f"\r\nCongratulations to " \
+                    f"{expired[2]} and {expired[3]}!"
+
+            elif second_ing_score > third_ing_score:
+                comment = f"The favourite duo was " \
+                    f"{expired[1]} and {expired[2]}! " \
+                    f"Congratulations {emojis.emojis_pycode.orange_heart}"
+
+            else:
+                comment = f"The favourite duo was " \
+                    f"{expired[1]} and {expired[3]} " \
+                    f"{emojis.emojis_pycode.open_mouth} Congratulations!"
         else:
-            second_ing_score = -0.3
-            third_ing_score = -0.3
+            second_ing_score = -0.2
+            third_ing_score = -0.2
+            comment = "None of the duest have been chosen. Too bad, they will" \
+                      "have their chance with other foods!"
 
         self.update_score(expired[1], expired[2], second_ing_score, verbose)
         self.update_score(expired[1], expired[3], third_ing_score, verbose)
+
+        return comment
 
     def _get_history(self):
         try:
@@ -111,7 +131,7 @@ class Ingredients:
             history = pd.DataFrame(columns=columns)
         return history
 
-    def handle_pending(self, hours_threshold=0, verbose=True,
+    def handle_pending(self, hours_threshold=48, verbose=True,
                        save_modifications=True):
         """
         # Facebook Reactions
@@ -141,7 +161,8 @@ class Ingredients:
             reactions_count = dict.fromkeys(self.fb_reacts, 0)
             response = fb.get_post_reactions(post_id)
 
-            if response['code'] == 100:  # Deleted post
+            if 'code' in response.keys() and response['code'] == 100:
+                # Deleted post
                 continue
 
             for react in response['data']:
@@ -157,11 +178,12 @@ class Ingredients:
             history.append([history_content], ignore_index=True)
 
             # Update matrix
-            self.compute_score(expired, reactions_count, verbose)
+            comment = self.compute_score(expired, reactions_count, verbose)
 
             if save_modifications:
                 history.to_csv(filepaths.versus_history, index=False)
                 self.matrix_df.to_csv(filepaths.ingredients_matrix, index=False)
+                fb.post_comment(post_id, comment)
 
         if save_modifications:
             # Delete computed versus
@@ -177,4 +199,5 @@ if __name__ == '__main__':
     # x = ingredients_list.get_random_versus_combination(set_length=3)
     # x = ingredients_list.get_good_combinations()
     # pprint(x)
-    ingredients.handle_pending(save_modifications=False)
+    ingredients.handle_pending(hours_threshold=0,
+                               save_modifications=False)

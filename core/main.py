@@ -2,6 +2,7 @@ from core import image_generation, recipe_ingredients
 from parse import cocktail_ingredients, parse_ingredients
 from drivers import fb_driver, unsplash_driver, pexels_driver
 from utils import io_ops, filepaths
+from utils.emojis import emojis_pycode
 
 ingredients_list = parse_ingredients.get_ingredients_list()
 
@@ -77,10 +78,6 @@ def get_versus_post_content():
     Facebook Reacts are of type enum {NONE, LIKE, LOVE, WOW, HAHA, SORRY, ANGRY}
     Care reactions are counted as Like reactions (ref https://developers.facebook.com/docs/graph-api/reference/v9.0/object/reactions)
     """
-    emojis_pycode = dict(black_heart=u"\U0001F5A4",
-                         orange_heart=u"\U0001F9E1",
-                         open_mouth=u"\U0001F62E")
-
     samples = ingredient.get_random_versus_combination(set_length=2)
     print(samples)
     first_ing, second_ing, third_ing = [sample.capitalize() for sample in
@@ -88,9 +85,9 @@ def get_versus_post_content():
     # TODO: Update i_versus
     post_text = f"VERSUS TIME! over the {first_ing.upper()}.\r\n" \
         "Which is the best duo?\r\n" \
-        f"{emojis_pycode['orange_heart']} LOVE REACT: " \
+        f"{emojis_pycode.orange_heart} LOVE REACT: " \
         f"{first_ing} + {second_ing}\r\n" \
-        f"{emojis_pycode['open_mouth']} WOW REACT: " \
+        f"{emojis_pycode.open_mouth} WOW REACT: " \
         f"{first_ing} + {third_ing}\r\n\r\n" \
         "Who will win?\r\n\r\n" \
         "You have 48 hours to decide!\r\n\r\n"
