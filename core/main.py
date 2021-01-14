@@ -15,6 +15,8 @@ cocktail_id = io_ops.get_env_var("cocktail_page_id")
 cocktail_access_token = io_ops.get_env_var("cocktail_access_token")
 
 ingredient = recipe_ingredients.Ingredients()
+fb = fb_driver.FbDriver()
+
 
 def post_recipe_sample(k=3):
     ingredient = recipe_ingredients.Ingredients()
@@ -34,14 +36,15 @@ def post_recipe_sample(k=3):
     if success:
         image_generation.label(filepaths.recipe_rawpic_file, samples,
                                filepaths.recipe_newpic_file)
-        return fb_driver.post_picture(recipe_access_token, post_text,
-                                      filepaths.recipe_newpic_file)
+        return fb.post_picture(recipe_access_token, post_text,
+                               filepaths.recipe_newpic_file)
     else:
-        return fb_driver.post_text_http_request(page_id, recipe_access_token,
-                                                post_text)
+        return fb.post_text_http_request(page_id, recipe_access_token,
+                                         post_text)
 
 
 def post_cocktail_sample():
+    cocktail_fb = fb_driver.FbDriver(access_token=cocktail_access_token)
     flatten = lambda l: [item for sublist in l for item in sublist]
 
     sample = cocktail_ingredients.get_ingredients()
@@ -59,15 +62,13 @@ def post_cocktail_sample():
                                         flatten(sample)[:3])),
                                filepaths.cocktail_newpic_file)
 
-        return fb_driver.post_picture(cocktail_access_token, post_text,
-                                      filepaths.cocktail_newpic_file)
+        return cocktail_fb.post_picture(post_text,
+                                        filepaths.cocktail_newpic_file)
     else:
-        return fb_driver.post_text_http_request(page_id, cocktail_access_token,
-                                                post_text)
+        return cocktail_fb.post_text_http_request(page_id, post_text)
 
 
 def get_versus_post_content():
-
     """
     # Emojis
     Python Source Code come from https://www.fileformat.info/info/unicode/char
@@ -85,8 +86,7 @@ def get_versus_post_content():
     first_ing, second_ing, third_ing = [sample.capitalize() for sample in
                                         samples]
     # TODO: Update i_versus
-    i_versus = 1
-    post_text = f"VERSUS #{i_versus} over the {first_ing.upper()}.\r\n" \
+    post_text = f"VERSUS TIME! over the {first_ing.upper()}.\r\n" \
         "Which is the best duo?\r\n" \
         f"{emojis_pycode['orange_heart']} LOVE REACT: " \
         f"{first_ing} + {second_ing}\r\n" \
@@ -110,7 +110,14 @@ def get_versus_post_content():
         return post_recipe_versus()
 
     post_text += f"Picture of {second_ing} {picture_1_text}\r\n"
-    post_text += f"Picture of {third_ing} {picture_2_text}"
+    post_text += f"Picture of {third_ing} {picture_2_text}\r\n"
+
+    post_text += "#food_versus #food #recipe #cook #tasty #cooking #foodie"
+    post_text += " #foodversus #foodlover #healthy"
+    for ingredient_name in [first_ing, second_ing, third_ing]:
+        keywords = ingredient_name.lower().split(" ")
+        for k in keywords:
+            post_text += f" #{k}"
 
     # Use versus generator image
     img_text = [f"What's tastier?\r\n{first_ing} with...",
@@ -125,10 +132,10 @@ def get_versus_post_content():
 
 def post_recipe_versus():
     samples, post_text, image_path = get_versus_post_content()
-    response = fb_driver.post_picture(recipe_access_token, post_text,
-                                      filepaths.recipe_newpic_file)
+    response = fb.post_picture(post_text, filepaths.recipe_newpic_file)
 
     ingredient.add_to_pending(response['post_id'], *samples)
+
 
 def validate_versus_post():
     ok = False
@@ -139,8 +146,7 @@ def validate_versus_post():
         if answer == 'y':
             ok = True
 
-    response = fb_driver.post_picture(recipe_access_token, post_text,
-                                      filepaths.recipe_newpic_file)
+    response = fb.post_picture(post_text, filepaths.recipe_newpic_file)
     print(response)
     ingredient.add_to_pending(response['post_id'], *samples)
 
@@ -148,6 +154,6 @@ def validate_versus_post():
 if __name__ == '__main__':
     # print(post_cocktail_sample())
     # print(post_recipe_sample())
-    #print(post_recipe_versus())
-    #get_versus_post_content()
+    # print(post_recipe_versus())
+    # get_versus_post_content()
     validate_versus_post()

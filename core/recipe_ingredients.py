@@ -5,7 +5,7 @@ import pandas as pd
 from utils import filepaths, io_ops
 import datetime
 
-from drivers import fb_driver
+from drivers.fb_driver import FbDriver
 
 
 class Ingredients:
@@ -40,19 +40,17 @@ class Ingredients:
         first_ing = self.ingredients_list[
             random.randint(0, len(self.ingredients_list)) // 4]
         combinable_ingredients = self.get_combination_for(first_ing,
-                                                          threshold=0.5)
+                                                          threshold=0.3)
         other_ings = random.sample(combinable_ingredients, set_length)
         return [first_ing, *other_ings]
 
-    def get_good_combinations(self, n=10, set_length=3):
+    def get_good_combinations(self, n=10, set_length=3, n_best=20):
         first_ings = random.sample(self.ingredients_list, n)
         combinations = []
 
         for first_ing in first_ings:
             current = [first_ing]
-            n_selected = set_length * 8
-            best_others_index = np.argsort(-self.matrix_df[first_ing])[
-                                :n_selected]
+            best_others_index = np.argsort(-self.matrix_df[first_ing])[:n_best]
             for i in random.sample(list(best_others_index), set_length - 1):
                 current.append(self.ingredients_list[i])
 
@@ -94,8 +92,12 @@ class Ingredients:
         haha = reactions_count['HAHA']
         total_points = love + wow + haha
 
-        second_ing_score = love / total_points - 0.1
-        third_ing_score = wow / total_points - 0.1
+        if total_points > 0:
+            second_ing_score = love / total_points
+            third_ing_score = wow / total_points
+        else:
+            second_ing_score = -0.3
+            third_ing_score = -0.3
 
         self.update_score(expired[1], expired[2], second_ing_score, verbose)
         self.update_score(expired[1], expired[3], third_ing_score, verbose)
@@ -130,13 +132,14 @@ class Ingredients:
                          pd.to_datetime(df['post_timestamp']) > \
                          datetime.timedelta(hours=hours_threshold)
 
+        fb = FbDriver()
         for expired in df[expired_versus].values:
             if verbose:
                 print(expired)
 
             post_id = expired[0]
             reactions_count = dict.fromkeys(self.fb_reacts, 0)
-            response = fb_driver.get_post_reactions(self.access_token, post_id)
+            response = fb.get_post_reactions(post_id)
 
             if response['code'] == 100:  # Deleted post
                 continue
