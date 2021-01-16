@@ -206,7 +206,6 @@ def _draw_options_box(img):
     return img
 
 
-
 def versus_label(raw_picture_files: List[str], samples: List[str],
                  new_picture_file) -> None:
     options_reacts = [Image.open(img) for img in options_reacts_fp]

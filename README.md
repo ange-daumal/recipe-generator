@@ -1,10 +1,11 @@
 # recipe-generator
 An automatic recipe idea generator for two Facebook Pages:
 
-* Food recipe [Recipe Ideas Generator](facebook.com/Recipe-Ideas-Generator-113704106942055)
+* Food recipe [Recipe Ideas Generator](https://www.facebook.com/Recipe-Ideas-Generator-113704106942055)
 * Cocktail recipe [Cocktail Idea Generator](https://www.facebook.com/Cocktail-Idea-Generator-100886964965848)
 
-# Usage
+# Developers
+
 ## Required access 
 After cloning the project, you need to put in a `.env` file at the root of this repository.
 * `page_id`: the ID of the Facebook Page you want to post to.
@@ -14,9 +15,6 @@ After cloning the project, you need to put in a `.env` file at the root of this 
 Another way is to directly use a Page Access Token. On this project, there is two variables:
 * `recipe_access_token` for the first page,
 * `cocktail_access_token` for the second one.
-
-
-# Developers
 
 ## Data required
 * Get Ryan Lee's [Recipe Box](https://github.com/rtlee9/recipe-box) dataset

@@ -20,7 +20,7 @@ from tqdm import tqdm
 trademarks = ["®", "hellmann", "sargento", "soy vay", "bertolli", "bacardi",
               "heinz", "gold medal", "spam", "wish bone", 'sugarcraft']
 
-not_vegan = ["fillets", "chicken", "boar", "salmon", "beef", "fish",
+not_vegan = ["fillets", "boar", "salmon", "beef", "fish",
              "scallops", "pork", "squid", "tamales", "salami",
              "calamari", "turkey", "mutton", "loin", "steak",
              "calf", "duck", "lamb", "tuna", "branzino",
@@ -104,11 +104,12 @@ prep_details = [
     'lightened', 'crustless', 'sourdough', 'peel', 'traditional',
     'preserved', 'candy', 'brunoised', 'disk', 'best',
     'process', 'food', 'candied', 'packages', 'long', 'browned',
-    'old fashioned', 'whipped', 'frying',
+    'old fashioned', 'whipped', 'frying', 'quick',
     # type of foods
     'heavy', 'long', 'gluten', 'free', 'fully', 'smoked',
     # countrys
     'english', 'asian', 'bulgarian', 'spanish', 'thai',
+    'boston',
     # brands
     'myers', 'aarti',
 

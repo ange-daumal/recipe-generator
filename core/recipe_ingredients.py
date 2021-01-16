@@ -44,7 +44,7 @@ class Ingredients:
         other_ings = random.sample(combinable_ingredients, set_length)
         return [first_ing, *other_ings]
 
-    def get_good_combinations(self, n=10, set_length=3, n_best=20):
+    def get_good_combinations(self, n=10, set_length=3, n_best=50):
         first_ings = random.sample(self.ingredients_list, n)
         combinations = []
 
@@ -175,7 +175,7 @@ class Ingredients:
             # Update history
             history_content = dict(zip(df.columns, expired))
             history_content.update(reactions_count)
-            history.append([history_content], ignore_index=True)
+            history = history.append([history_content], ignore_index=True)
 
             # Update matrix
             comment = self.compute_score(expired, reactions_count, verbose)
@@ -189,7 +189,6 @@ class Ingredients:
             # Delete computed versus
             df = df[~expired_versus]
             df.to_csv(filepaths.versus_pending, index=False)
-            pass
 
         return True
 
@@ -200,4 +199,4 @@ if __name__ == '__main__':
     # x = ingredients_list.get_good_combinations()
     # pprint(x)
     ingredients.handle_pending(hours_threshold=0,
-                               save_modifications=False)
+                               save_modifications=not True)

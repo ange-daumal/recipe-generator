@@ -74,7 +74,7 @@ class FbDriver:
         return self.check_error(response, verbose=True)
 
     def post_picture(self, message: str, filepath: str):
-        graph = facebook.GraphAPI(access_token=f.selpage_access_token)
+        graph = facebook.GraphAPI(access_token=self.page_access_token)
         response = graph.put_photo(image=open(filepath, 'rb'),
                                    message=message)
         return self.check_error(response, verbose=True)
