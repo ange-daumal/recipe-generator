@@ -195,7 +195,7 @@ def _join_images(images):
 def _draw_options_box(img):
     width, height = img.size
     rectangle = [(width // 2 - 250, 6.8 * height // 9),
-                 (width // 2 + 200, 8.48 * height // 9)]
+                 (width // 2 + 200, 8.4 * height // 9)]
     color = (0, 0, 0)
 
     overlay = Image.new('RGBA', img.size, color + (0,))
@@ -209,7 +209,7 @@ def _draw_options_box(img):
 def versus_label(raw_picture_files: List[str], samples: List[str],
                  new_picture_file) -> None:
     options_reacts = [Image.open(img) for img in options_reacts_fp]
-    options_texts = ["I don't know", "Neither of them"]
+    options_texts = ["Both", "Neither"]
     options_offsets = [0, 80]
 
     images = _generate_versus_images(raw_picture_files, samples[1:])

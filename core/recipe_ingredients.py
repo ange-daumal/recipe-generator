@@ -42,6 +42,11 @@ class Ingredients:
         combinable_ingredients = self.get_combination_for(first_ing,
                                                           threshold=0.3)
         other_ings = random.sample(combinable_ingredients, set_length)
+
+        for other_ing in other_ings:
+            if other_ing == first_ing:
+                return self.get_random_versus_combination(set_length=set_length)
+
         return [first_ing, *other_ings]
 
     def get_good_combinations(self, n=10, set_length=3, n_best=50):
@@ -87,15 +92,16 @@ class Ingredients:
             print(f"({ing1}, {ing2}): {previous} => {new}")
 
     def compute_score(self, expired, reactions_count, verbose):
+        like = reactions_count['LIKE']
         love = reactions_count['LOVE']
         wow = reactions_count['WOW']
         haha = reactions_count['HAHA']
-        total_points = love + wow + haha
+        total_points = like + love + wow + haha
 
         comment = "This versus has ended!\r\n"
         if total_points > 0:
-            second_ing_score = love / total_points
-            third_ing_score = wow / total_points
+            second_ing_score = (like + love) / total_points
+            third_ing_score = (like + wow) / total_points
 
             if round(second_ing_score, 1) == round(third_ing_score, 1):
                 comment = "It was tight: both foods had the same popularity!" \
@@ -195,8 +201,7 @@ class Ingredients:
 
 if __name__ == '__main__':
     ingredients = Ingredients()
-    # x = ingredients_list.get_random_versus_combination(set_length=3)
-    # x = ingredients_list.get_good_combinations()
-    # pprint(x)
-    ingredients.handle_pending(hours_threshold=0,
-                               save_modifications=not True)
+    from pprint import pprint
+    x = ingredients.get_good_combinations()
+    pprint(x)
+    #ingredients.handle_pending(hours_threshold=0, save_modifications=not True)
