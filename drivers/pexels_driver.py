@@ -16,8 +16,8 @@ headers = {
 }
 
 
-def get_picture_by_keywords(keywords, image_filepath,
-                            per_page=2):
+def get_picture_by_keywords(keywords: list, image_filepath: str,
+                            per_page: int = 2):
     response = requests.get(f"{api}/search?query={' '.join(keywords)}"
                             f"&per_page={per_page}",
                             headers=headers)

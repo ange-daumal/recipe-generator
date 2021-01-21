@@ -99,29 +99,31 @@ class Ingredients:
         total_points = like + love + wow + haha
 
         comment = "This versus has ended!\r\n"
+        negative_score = -haha / total_points
+        negative_score = -0.3 if negative_score > -0.3 else negative_score
+        second_ing_score = negative_score
+        third_ing_score = negative_score
         if total_points > 0:
-            second_ing_score = (like + love) / total_points
-            third_ing_score = (like + wow) / total_points
+            second_ing_score += (like + love) / total_points
+            third_ing_score += (like + wow) / total_points
 
             if round(second_ing_score, 1) == round(third_ing_score, 1):
-                comment = "It was tight: both foods had the same popularity!" \
+                comment += "It was tight: both foods had the same popularity!" \
                           f"\r\nCongratulations to " \
-                    f"{expired[2]} and {expired[3]}!"
+                          f"{expired[2]} and {expired[3]}!"
 
             elif second_ing_score > third_ing_score:
-                comment = f"The favourite duo was " \
+                comment += f"The favourite duo was " \
                     f"{expired[1]} and {expired[2]}! " \
                     f"Congratulations {emojis.emojis_pycode.orange_heart}"
 
             else:
-                comment = f"The favourite duo was " \
+                comment += f"The favourite duo was " \
                     f"{expired[1]} and {expired[3]} " \
                     f"{emojis.emojis_pycode.open_mouth} Congratulations!"
         else:
-            second_ing_score = -0.2
-            third_ing_score = -0.2
-            comment = "None of the duest have been chosen. Too bad, they will" \
-                      "have their chance with other foods!"
+            comment += "None of the duo have been chosen. Too bad, they will"\
+                       "have their chance with other foods!"
 
         self.update_score(expired[1], expired[2], second_ing_score, verbose)
         self.update_score(expired[1], expired[3], third_ing_score, verbose)
@@ -137,15 +139,12 @@ class Ingredients:
             history = pd.DataFrame(columns=columns)
         return history
 
-    def handle_pending(self, hours_threshold=48, verbose=True,
+    def handle_pending(self, hours_threshold=48, verbose=True, debug=False,
                        save_modifications=True):
         """
         # Facebook Reactions
         Facebook Reacts are of type enum {NONE, LIKE, LOVE, WOW, HAHA, SORRY, ANGRY}
         Care reactions are counted as Like reactions (ref https://developers.facebook.com/docs/graph-api/reference/v9.0/object/reactions)
-
-        :param hours_threshold:
-        :return:
         """
         try:
             df = pd.read_csv(filepaths.versus_pending)
@@ -160,7 +159,7 @@ class Ingredients:
 
         fb = FbDriver()
         for expired in df[expired_versus].values:
-            if verbose:
+            if debug:
                 print(expired)
 
             post_id = expired[0]
@@ -174,7 +173,7 @@ class Ingredients:
             for react in response['data']:
                 reactions_count[react['type']] += 1
 
-            if verbose:
+            if debug:
                 print(response)
                 print(reactions_count)
 

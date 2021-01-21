@@ -83,8 +83,8 @@ def get_ingredients(max_ingredient=3,
 
 
 sentences_step1 = [
-    f"Build all ingredients_list.",
-    f"Combine all ingredients_list.",
+    f"Build all ",
+    f"Combine all ",
 ]
 
 sentences_step2 = [
@@ -111,7 +111,8 @@ def generate_sentence(sample):
         full_text += f"* {ingredient.capitalize()}\n"
 
     full_text += "\n"
-    full_text += f"1. {random.choice(sentences_step1)}\n"
+    full_text += f"1. {random.choice(sentences_step1)}"
+    full_text += f"{', '.join(ingredients)}.\r\n"
     if garnish_list:
         full_text += f"2. {random.choice(sentences_step2)} " \
             f"{' and '.join(garnish_list)}.\n"

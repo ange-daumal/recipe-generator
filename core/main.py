@@ -3,6 +3,7 @@ from parse import cocktail_ingredients, parse_ingredients
 from drivers import fb_driver, unsplash_driver, pexels_driver
 from utils import io_ops, filepaths
 from utils.emojis import emojis_pycode
+import random
 
 ingredients_list = parse_ingredients.get_ingredients_list()
 
@@ -27,9 +28,9 @@ def get_post_recipe(k=3):
     for i in range(k):
         message += f"{ordinal(i + 1)} ingredient: {samples[i]}\n"
 
-    keywords = " ".join(samples)
-    success, picture_text = unsplash_driver.get_picture_by_keywords(keywords,
-                                                                    filepaths.recipe_rawpic_file)
+    keywords = random.choice(samples)
+    success, picture_text = pexels_driver.get_picture_by_keywords([keywords],
+                                filepaths.recipe_rawpic_file)
 
     if not success:
         return get_post_recipe(k=k)
@@ -177,5 +178,5 @@ if __name__ == '__main__':
     # print(post_recipe_sample())
     # print(post_recipe_versus())
     # get_versus_post_content()
-    validate_versus_post()
-    # validate_post_recipe()
+    # validate_versus_post()
+    validate_post_recipe()
