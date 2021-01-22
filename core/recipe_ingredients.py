@@ -37,8 +37,8 @@ class Ingredients:
         return combinable_ingredients.to_list()
 
     def get_random_versus_combination(self, set_length=2):
-        first_ing = self.ingredients_list[
-            random.randint(0, len(self.ingredients_list)) // 4]
+        length = len(self.ingredients_list) // 4
+        first_ing = self.ingredients_list[random.randint(0, length)]
         combinable_ingredients = self.get_combination_for(first_ing,
                                                           threshold=0.3)
         other_ings = random.sample(combinable_ingredients, set_length)
@@ -49,18 +49,16 @@ class Ingredients:
 
         return [first_ing, *other_ings]
 
-    def get_good_combinations(self, n=10, set_length=3, n_best=50):
-        first_ings = random.sample(self.ingredients_list, n)
-        combinations = []
+    def get_good_combination(self, n_ingredients=3, n_best=100):
+        length = len(self.ingredients_list) // 4
+        first_ing = self.ingredients_list[random.randint(0, length)]
 
-        for first_ing in first_ings:
-            current = [first_ing]
-            best_others_index = np.argsort(-self.matrix_df[first_ing])[:n_best]
-            for i in random.sample(list(best_others_index), set_length - 1):
-                current.append(self.ingredients_list[i])
+        combination = []
+        best_others_index = np.argsort(-self.matrix_df[first_ing])[:n_best]
+        for i in random.sample(list(best_others_index), n_ingredients):
+            combination.append(self.ingredients_list[i])
 
-            combinations.append(current)
-        return combinations
+        return combination
 
     @staticmethod
     def add_to_pending(post_id, *ingredients):
@@ -201,6 +199,6 @@ class Ingredients:
 if __name__ == '__main__':
     ingredients = Ingredients()
     from pprint import pprint
-    x = ingredients.get_good_combinations()
+    x = ingredients.get_good_combination()
     pprint(x)
     #ingredients.handle_pending(hours_threshold=0, save_modifications=not True)
