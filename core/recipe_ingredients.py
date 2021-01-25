@@ -97,7 +97,7 @@ class Ingredients:
         total_points = like + love + wow + haha
 
         comment = "This versus has ended!\r\n"
-        negative_score = -haha / total_points
+        negative_score = -haha / total_points if total_points > 0 else 0
         negative_score = -0.3 if negative_score > -0.3 else negative_score
         second_ing_score = negative_score
         third_ing_score = negative_score
@@ -120,7 +120,7 @@ class Ingredients:
                     f"{expired[1]} and {expired[3]} " \
                     f"{emojis.emojis_pycode.open_mouth} Congratulations!"
         else:
-            comment += "None of the duo have been chosen. Too bad, they will"\
+            comment += "None of the duo have been chosen. Too bad, they will "\
                        "have their chance with other foods!"
 
         self.update_score(expired[1], expired[2], second_ing_score, verbose)
@@ -202,3 +202,4 @@ if __name__ == '__main__':
     x = ingredients.get_good_combination()
     pprint(x)
     #ingredients.handle_pending(hours_threshold=0, save_modifications=not True)
+

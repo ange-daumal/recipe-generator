@@ -22,7 +22,7 @@ fb = fb_driver.FbDriver()
 
 def get_post_recipe(k=3):
     ingredient = recipe_ingredients.Ingredients()
-    samples = ingredient.get_good_combination(n_ingredients=3)
+    samples = ingredient.get_good_combination(n_ingredients=k)
 
     message = ""
     for i in range(k):

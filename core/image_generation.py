@@ -69,6 +69,8 @@ def draw_centered_text(draw, img, position, text, font):
 def label(raw_picture_file: str, samples: List[str], new_picture_file) -> None:
     img = Image.open(raw_picture_file)
 
+    img = _crop_squarish(img)
+
     # Get size
     width, height = img.size
     text_positions = get_pos(width, height, len(samples))
