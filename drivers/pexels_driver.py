@@ -29,6 +29,9 @@ def get_picture_by_keywords(keywords: list, image_filepath: str,
 
     response = json.loads(response.text)
 
+    if 'photos' not in response.keys():
+        return False, "Did not find pictures"
+
     picture_data = random.choice(response['photos'])
     picture_url = picture_data['src']['large2x']
     author = picture_data['photographer']

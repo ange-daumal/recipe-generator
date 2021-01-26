@@ -38,7 +38,18 @@ def get_post_recipe(k=3):
     image_generation.label(filepaths.recipe_rawpic_file, samples,
                            filepaths.recipe_newpic_file)
 
-    post_text = f"{message}\nPicture {picture_text}"
+    post_text = f"{message}\nPicture {picture_text}\n"
+
+    post_text += " #food #recipe #cook #tasty #cooking #foodie"
+    post_text += " #foodlover #healthy #foodporn #foodphotography #foodstagram"
+    post_text += " #foodpics"
+    post_text += " #delicious #eating #yum #yummy #nom #nomnom #nomnomnom"
+    post_text += " #eeeeeats"
+    for ingredient_name in samples:
+        keywords = ingredient_name.lower().split(" ")
+        for k in keywords:
+            post_text += f" #{k}"
+
     return post_text, samples
 
 
@@ -114,14 +125,14 @@ def get_versus_post_content():
 
     if not success:
         print("Did not find picture for", second_ing)
-        return post_recipe_versus()
+        return get_versus_post_content()
 
     success, picture_2_text = pexels_driver.get_picture_by_keywords(
         [third_ing], filepaths.versus2_img)
 
     if not success:
         print("Did not find picture for", third_ing)
-        return post_recipe_versus()
+        return get_versus_post_content()
 
     post_text += f"Picture of {second_ing} {picture_1_text}\r\n"
     post_text += f"Picture of {third_ing} {picture_2_text}\r\n"
@@ -178,5 +189,5 @@ if __name__ == '__main__':
     # print(post_recipe_sample())
     # print(post_recipe_versus())
     # get_versus_post_content()
-    # validate_versus_post()
-    validate_post_recipe()
+    validate_versus_post()
+    #validate_post_recipe()
