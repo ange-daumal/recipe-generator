@@ -81,7 +81,7 @@ class Ingredients:
         ing2_index = self.ingredients_index[ing2]
 
         previous = self.matrix_df[ing1][ing2_index]
-        new = previous + score
+        new = round(previous + score, 2)
 
         self.matrix_df[ing1][ing2_index] = new
         self.matrix_df[ing2][ing1_index] = new
@@ -101,11 +101,15 @@ class Ingredients:
         negative_score = -0.3 if negative_score > -0.3 else negative_score
         second_ing_score = negative_score
         third_ing_score = negative_score
+
         if total_points > 0:
             second_ing_score += (like + love) / total_points
             third_ing_score += (like + wow) / total_points
 
-            if round(second_ing_score, 1) == round(third_ing_score, 1):
+            if haha > (like+love):
+                comment += "It seems that neither duos was popular."
+
+            elif round(second_ing_score, 1) == round(third_ing_score, 1):
                 comment += "It was tight: both foods had the same popularity!" \
                           f"\r\nCongratulations to " \
                           f"{expired[2]} and {expired[3]}!"
