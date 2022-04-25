@@ -40,11 +40,13 @@ def get_post_recipe(k=3):
 
     post_text = f"{message}\nPicture {picture_text}\n"
 
-    post_text += " #food #recipe #cook #tasty #cooking #foodie"
-    post_text += " #foodlover #healthy #foodporn #foodphotography #foodstagram"
-    post_text += " #foodpics"
-    post_text += " #delicious #eating #yum #yummy #nom #nomnom #nomnomnom"
-    post_text += " #eeeeeats"
+    recipe_keywords = """#food #recipe #cook #tasty #cooking #foodie
+    #foodlover #healthy #foodporn #foodphotography #foodstagram
+    #foodpics
+    #delicious #eating #yum #yummy #nom #nomnom #nomnomnom
+    #eeeeeats""".split()
+
+    post_text += ' #RIGrecipe ' + ' '.join(random.sample(recipe_keywords, 4))
     for ingredient_name in samples:
         keywords = ingredient_name.lower().split(" ")
         for k in keywords:
@@ -137,11 +139,12 @@ def get_versus_post_content():
     post_text += f"Picture of {second_ing} {picture_1_text}\r\n"
     post_text += f"Picture of {third_ing} {picture_2_text}\r\n"
 
-    post_text += "#food_versus #food #recipe #cook #tasty #cooking #foodie"
-    post_text += " #foodversus #foodlover #healthy #foodporn"
-    post_text += " #foodphotography #foodstagram #foodpics"
-    post_text += " #delicious #eating #yum #yummy #nom #nomnom #nomnomnom"
-    post_text += " #eeeeeats"
+    versus_keywords = """food_versus #food #recipe #cook #tasty #cooking #foodie
+     #foodversus #foodlover #healthy #foodporn
+     #foodphotography #foodstagram #foodpics
+     #delicious #eating #yum #yummy #nom #nomnom #nomnomnom
+     #eeeeeats""".split()
+    post_text += ' #RIGversus ' + ' '.join(random.sample(versus_keywords, 4))
     for ingredient_name in [first_ing, second_ing, third_ing]:
         keywords = ingredient_name.lower().split(" ")
         for k in keywords:
