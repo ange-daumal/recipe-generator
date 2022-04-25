@@ -24,7 +24,7 @@ class Ingredients:
             matrix_df = parse_recipes.apply_log(matrix_df)
             matrix_df.to_csv(filepaths.ingredients_matrix, index=False)
         self.matrix_df = matrix_df
-        self.access_token = io_ops.get_env_var("recipe_access_token")
+        # self.access_token = io_ops.get_env_var("recipe_access_token")
         self.fb_reacts = ["NONE", "LIKE", "LOVE", "WOW", "HAHA", "SORRY",
                           "ANGRY"]
 
@@ -199,6 +199,28 @@ class Ingredients:
 
         return True
 
+    def get_stats(self):
+        matrix_len = self.matrix_df.shape[0]
+        response = dict(data=dict(
+            total_ingredients=matrix_len,
+            ingredients_id=dict(zip(range(matrix_len), self.matrix_df.columns)),
+            top_10=self.matrix_df.max().head(10).to_dict()
+        ))
+        return response
+
+    def get_stats_by_ingredient_id(self, ingredient_id):
+        try:
+            values = self.matrix_df.iloc[ingredient_id]
+        except IndexError:
+            return dict(error=f"Ingredient ID {ingredient_id} not found.", data=[])
+
+        data = values.sort_values(ascending=False).to_dict()
+        response = dict(data=dict(
+            ingredient_name=self.matrix_df.columns[ingredient_id],
+            all_scores_sorted=[(k, v) for k, v in data.items()],
+            all_scores=data,
+        ))
+        return response
 
 if __name__ == '__main__':
     ingredients = Ingredients()

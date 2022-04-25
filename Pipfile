@@ -12,9 +12,11 @@ python-dotenv = "*"
 pillow = "*"
 imageio = "*"
 nltk = "*"
+numpy = "*"
 pandas = "*"
 tqdm = "*"
 chardet = "*"
+flask = "*"
 
 [requires]
 python_version = "3"
